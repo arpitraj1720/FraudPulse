@@ -474,10 +474,11 @@ class StreamInjectPayload(BaseModel):
 @app.post("/api/stream/inject")
 def inject_stream_attack(payload: StreamInjectPayload) -> Dict[str, Any]:
     """Inject a coordinated attack burst into the active transaction stream."""
-    stream_simulator._queue_random_attack_sequence()
+    stream_simulator._queue_random_attack_sequence(attack_type=payload.attack_type)
     return {
         "status": "ok",
-        "message": f"Injected attack sequence into stream queue ({len(stream_simulator.attack_queue)} steps queued)",
+        "attack_type": payload.attack_type,
+        "message": f"Injected '{payload.attack_type}' attack sequence into stream queue ({len(stream_simulator.attack_queue)} steps queued)",
         "queue_length": len(stream_simulator.attack_queue),
     }
 

@@ -107,7 +107,7 @@ class GraphRiskEngine:
         sender_out_degree = self.graph.out_degree(sender) if self.graph.has_node(sender) else 0
 
         # 1. Money Mule Detection: Fan-In Spike
-        is_merchant = recipient.startswith("M") or "merchant" in recipient.lower()
+        is_merchant = (recipient.startswith("M") and recipient[1:].isdigit()) or "merchant" in recipient.lower()
         if not is_merchant:
             # If a peer/unverified wallet has multiple distinct senders feeding it
             if recipient_in_degree >= 2 and not self.graph.has_edge(sender, recipient):

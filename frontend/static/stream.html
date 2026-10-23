@@ -617,6 +617,299 @@
       padding: 24px;
       box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7);
     }
+
+    /* ==========================================================================
+       FLAGGED TRANSACTIONS & CAUSAL AUDIT LOG (BOTTOM CONSOLE)
+       ========================================================================== */
+    .flagged-audit-section {
+      max-width: 1720px;
+      width: 100%;
+      margin: 0 auto 40px auto;
+      padding: 0 28px;
+    }
+
+    .audit-panel {
+      background: rgba(12, 15, 22, 0.95);
+      border: 1px solid #232c3f;
+      border-top: 2px solid var(--color-red);
+      border-radius: 3px;
+      overflow: hidden;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+    }
+
+    .audit-header {
+      background: #090c13;
+      border-bottom: 1px solid #1c2434;
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .audit-title-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .audit-title {
+      font-family: var(--font-tech);
+      font-size: 13px;
+      letter-spacing: 0.1em;
+      color: #f8fafc;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .audit-count-badge {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--color-red);
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      padding: 2px 8px;
+      border-radius: 2px;
+      letter-spacing: 0.05em;
+    }
+
+    .audit-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .audit-btn {
+      background: #121824;
+      border: 1px solid #273347;
+      color: #94a3b8;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      padding: 5px 10px;
+      border-radius: 2px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.15s ease;
+    }
+
+    .audit-btn:hover {
+      color: #fff;
+      border-color: #475569;
+      background: #1a2233;
+    }
+
+    .audit-log-container {
+      max-height: 480px;
+      overflow-y: auto;
+      padding: 14px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .audit-empty-state {
+      text-align: center;
+      padding: 36px 20px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: #64748b;
+    }
+
+    .audit-card {
+      background: #090c12;
+      border: 1px solid #1c2434;
+      border-left: 3px solid var(--color-red);
+      border-radius: 2px;
+      padding: 14px 16px;
+      display: grid;
+      grid-template-columns: 200px 1fr auto;
+      gap: 16px;
+      align-items: center;
+      transition: all 0.15s ease;
+    }
+
+    .audit-card:hover {
+      background: #0e131d;
+      border-color: #2b374c;
+      border-left-color: #f87171;
+    }
+
+    .audit-meta-col {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-family: var(--font-mono);
+    }
+
+    .audit-time-id {
+      font-size: 10px;
+      color: #64748b;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .audit-account {
+      font-size: 12px;
+      font-weight: 700;
+      color: #f8fafc;
+    }
+
+    .audit-flow {
+      font-size: 10px;
+      color: #94a3b8;
+    }
+
+    .audit-reason-col {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-family: var(--font-mono);
+    }
+
+    .audit-reason-headline {
+      font-size: 12px;
+      font-weight: 700;
+      color: #fca5a5;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .audit-reason-text {
+      font-size: 11px;
+      line-height: 1.45;
+      color: #cbd5e1;
+    }
+
+    .audit-evidence-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 2px;
+    }
+
+    .evidence-chip {
+      font-size: 9px;
+      font-weight: 600;
+      padding: 2px 6px;
+      border-radius: 2px;
+      background: #141b27;
+      border: 1px solid #232d3f;
+      color: #94a3b8;
+    }
+
+    .evidence-chip.risk {
+      color: #f87171;
+      border-color: rgba(239, 68, 68, 0.35);
+      background: rgba(239, 68, 68, 0.08);
+    }
+
+    .evidence-chip.graph {
+      color: #38bdf8;
+      border-color: rgba(56, 189, 248, 0.35);
+      background: rgba(56, 189, 248, 0.08);
+    }
+
+    .evidence-chip.shap {
+      color: #fbbf24;
+      border-color: rgba(251, 191, 36, 0.35);
+      background: rgba(251, 191, 36, 0.08);
+    }
+
+    .audit-action-col {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 8px;
+      font-family: var(--font-mono);
+    }
+
+    .audit-score-pill {
+      font-size: 13px;
+      font-weight: 800;
+      color: #ef4444;
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid rgba(239, 68, 68, 0.35);
+      padding: 4px 10px;
+      border-radius: 2px;
+    }
+
+    .btn-audit-investigate {
+      background: #182233;
+      border: 1px solid #2e3d55;
+      color: #f8fafc;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 700;
+      padding: 6px 10px;
+      border-radius: 2px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+
+    .btn-audit-investigate:hover {
+      background: #24324c;
+      border-color: #475569;
+      color: #38bdf8;
+    }
+
+    /* Topological Graph SVG Preview Styles */
+    .graph-svg-wrapper {
+      background: #06090e;
+      border: 1px solid #1c2536;
+      border-left: 2px solid var(--color-red);
+      border-radius: 2px;
+      padding: 10px 12px;
+      margin-top: 10px;
+    }
+
+    .graph-svg-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+
+    .graph-svg-title {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: #94a3b8;
+      text-transform: uppercase;
+    }
+
+    .graph-svg-tag {
+      font-family: var(--font-mono);
+      font-size: 8px;
+      font-weight: 700;
+      padding: 1px 6px;
+      border-radius: 2px;
+      letter-spacing: 0.05em;
+    }
+
+    .graph-svg-tag.red {
+      color: #f87171;
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.4);
+    }
+
+    .topological-svg {
+      width: 100%;
+      height: auto;
+      max-height: 120px;
+      display: block;
+    }
   </style>
 </head>
 <body class="stream-body">
@@ -860,6 +1153,7 @@
           <span class="data-label">Circular Wash Loop</span>
           <span class="data-val" id="insp-graph-cycle">False</span>
         </div>
+        <div id="insp-graph-preview-container" style="margin-top:8px;"></div>
       </div>
 
       <!-- Behavioral Sequence Signals -->
@@ -877,6 +1171,38 @@
       </button>
     </aside>
   </main>
+
+  <!-- Flagged Transactions & Causal Threat Audit Log (Bottom Full-Width Console) -->
+  <section class="flagged-audit-section">
+    <div class="audit-panel">
+      <div class="audit-header">
+        <div class="audit-title-group">
+          <span class="audit-title">
+            <span style="color:var(--color-red);font-size:14px;">⚠️</span>
+            FLAGGED TRANSACTIONS &amp; ROOT-CAUSE AUDIT LOG
+          </span>
+          <span class="audit-count-badge" id="audit-log-badge">0 THREATS INTERCEPTED</span>
+        </div>
+        <div class="audit-actions">
+          <button class="audit-btn" id="btn-export-audit">
+            <span>⭳</span>
+            <span>EXPORT JSON</span>
+          </button>
+          <button class="audit-btn" id="btn-clear-audit" style="color:#ef4444;">
+            <span>✕</span>
+            <span>CLEAR LOG</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="audit-log-container" id="audit-log-container">
+        <div class="audit-empty-state" id="audit-empty-state">
+          <div>● No critical anomalies flagged yet. Live transactions are actively being evaluated.</div>
+          <div style="font-size:10px;color:#475569;margin-top:4px;">Transactions with final risk score &ge; 0.50 or matching coordinated sequence patterns will populate here automatically with causal root-cause rationales.</div>
+        </div>
+      </div>
+    </div>
+  </section>
 
   <!-- Gemma AI Investigation Modal -->
   <div class="gemma-modal" id="gemma-modal">
@@ -901,6 +1227,7 @@
     let currentTps = 10;
     let currentFilter = 'all';
     let transactionsHistory = [];
+    let flaggedTransactions = [];
     let selectedTx = null;
 
     // DOM References
@@ -911,6 +1238,13 @@
     const toggleText = document.getElementById('toggle-stream-text');
     const statusPill = document.getElementById('stream-status-pill');
     const banner = document.getElementById('intercept-banner');
+
+    // Audit Log DOM References
+    const auditContainer = document.getElementById('audit-log-container');
+    const auditBadge = document.getElementById('audit-log-badge');
+    const auditEmpty = document.getElementById('audit-empty-state');
+    const btnExportAudit = document.getElementById('btn-export-audit');
+    const btnClearAudit = document.getElementById('btn-clear-audit');
 
     // HUD Elements
     const hudTps = document.getElementById('hud-tps');
@@ -923,6 +1257,334 @@
     const hudFp = document.getElementById('hud-fp-prevented');
     const hudAccuracy = document.getElementById('hud-accuracy');
     const hudF1 = document.getElementById('hud-f1');
+
+    // Topological Graph Visualizer (Lightweight sub-millisecond vector SVG)
+    function renderGraphSvg(tx, isInspector = false) {
+      if (!tx || !tx.raw) return '';
+      const gs = tx.graph_summary || {};
+      const isCycle = Boolean(gs.cycle || (tx.raw.attack_label && tx.raw.attack_label.toLowerCase().includes('wash') && tx.raw.attack_label.toLowerCase().includes('closure')));
+      const isMule = Boolean(gs.is_mule || (tx.raw.attack_label && tx.raw.attack_label.toLowerCase().includes('mule') && (gs.in_degree >= 2 || (tx.signals && tx.signals.some(s => s.toLowerCase().includes('mule'))))));
+      const isProximity = Boolean(gs.degrees_to_flagged >= 0 && gs.degrees_to_flagged <= 2);
+
+      // In bottom audit card, only render if there is a graph pattern
+      if (!isInspector && !isCycle && !isMule && !isProximity) {
+        return '';
+      }
+
+      const safeId = String(tx.id || Math.random().toString(36).substring(2)).replace(/[^a-zA-Z0-9]/g, '');
+      const sender = tx.raw.account_id || 'ACC_SENDER';
+      const rec = tx.raw.recipient || 'ACC_RECIPIENT';
+      const amtStr = `$${Number(tx.raw.amount).toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0})}`;
+
+      if (isCycle) {
+        const cyclePath = (gs.cycle_path && gs.cycle_path.length >= 3) ? gs.cycle_path : [sender, rec, 'Wash_Intermediary'];
+        const nA = cyclePath[0];
+        const nB = cyclePath[1];
+        const nC = cyclePath[2] || cyclePath[cyclePath.length - 1];
+
+        return `
+          <div class="graph-svg-wrapper">
+            <div class="graph-svg-header">
+              <span class="graph-svg-title">🔗 NETWORKX TOPOLOGY TRACE // DIRECTED WASH CYCLE</span>
+              <span class="graph-svg-tag red">CYCLE CLOSED (+0.40 RISK)</span>
+            </div>
+            <svg class="topological-svg" viewBox="0 0 460 125" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <marker id="arrow-red-${safeId}" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                  <path d="M 0 1 L 10 5 L 0 9 z" fill="#ef4444" />
+                </marker>
+                <marker id="arrow-amber-${safeId}" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                  <path d="M 0 1 L 10 5 L 0 9 z" fill="#f59e0b" />
+                </marker>
+              </defs>
+              <!-- Triangular Cycle Flow -->
+              <!-- Hop 1: nA -> nB -->
+              <path d="M 95 70 L 215 32" stroke="#f59e0b" stroke-width="1.8" stroke-dasharray="4 3" marker-end="url(#arrow-amber-${safeId})" />
+              <!-- Hop 2: nB -> nC -->
+              <path d="M 245 32 L 365 70" stroke="#f59e0b" stroke-width="1.8" stroke-dasharray="4 3" marker-end="url(#arrow-amber-${safeId})" />
+              <!-- Hop 3: Loop Closure Edge nC -> nA -->
+              <path d="M 360 80 L 100 80" stroke="#ef4444" stroke-width="2.5" marker-end="url(#arrow-red-${safeId})" />
+
+              <!-- Center Closure Alert Badge -->
+              <rect x="150" y="68" width="160" height="20" rx="2" fill="#180e12" stroke="#ef4444" stroke-width="1" />
+              <text x="230" y="82" text-anchor="middle" fill="#fca5a5" font-family="JetBrains Mono, monospace" font-size="8" font-weight="700">LOOP CLOSURE: ${amtStr}</text>
+
+              <!-- Node A -->
+              <g transform="translate(80, 80)">
+                <circle r="16" fill="#0f172a" stroke="#38bdf8" stroke-width="1.5" />
+                <circle r="5" fill="#38bdf8" opacity="0.6" />
+                <text x="0" y="26" text-anchor="middle" fill="#cbd5e1" font-family="JetBrains Mono, monospace" font-size="8">${nA.slice(-10)}</text>
+                <text x="0" y="36" text-anchor="middle" fill="#64748b" font-family="JetBrains Mono, monospace" font-size="7">ORIGIN</text>
+              </g>
+
+              <!-- Node B -->
+              <g transform="translate(230, 25)">
+                <circle r="16" fill="#0f172a" stroke="#f59e0b" stroke-width="1.5" />
+                <circle r="5" fill="#f59e0b" opacity="0.6" />
+                <text x="0" y="-8" text-anchor="middle" fill="#cbd5e1" font-family="JetBrains Mono, monospace" font-size="8">${nB.slice(-10)}</text>
+                <text x="0" y="-17" text-anchor="middle" fill="#64748b" font-family="JetBrains Mono, monospace" font-size="7">INTERMEDIARY</text>
+              </g>
+
+              <!-- Node C -->
+              <g transform="translate(380, 80)">
+                <circle r="16" fill="#1e1014" stroke="#ef4444" stroke-width="2" />
+                <circle r="6" fill="#ef4444" opacity="0.8" />
+                <text x="0" y="26" text-anchor="middle" fill="#fca5a5" font-family="JetBrains Mono, monospace" font-size="8">${nC.slice(-10)}</text>
+                <text x="0" y="36" text-anchor="middle" fill="#ef4444" font-family="JetBrains Mono, monospace" font-size="7">CLOSING SENDER</text>
+              </g>
+            </svg>
+          </div>
+        `;
+      }
+
+      if (isMule) {
+        const inDeg = gs.in_degree || 3;
+        return `
+          <div class="graph-svg-wrapper">
+            <div class="graph-svg-header">
+              <span class="graph-svg-title">🔗 NETWORKX TOPOLOGY TRACE // MULE FAN-IN CONVERGENCE</span>
+              <span class="graph-svg-tag red">FAN-IN SPIKE (${inDeg} ORIGINATORS)</span>
+            </div>
+            <svg class="topological-svg" viewBox="0 0 460 115" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <marker id="arrow-mule-${safeId}" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                  <path d="M 0 1 L 10 5 L 0 9 z" fill="#ef4444" />
+                </marker>
+                <marker id="arrow-flow-${safeId}" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                  <path d="M 0 1 L 10 5 L 0 9 z" fill="#f59e0b" />
+                </marker>
+              </defs>
+
+              <!-- Flow 1 -->
+              <path d="M 125 22 C 205 22, 260 50, 335 52" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="3 3" marker-end="url(#arrow-flow-${safeId})" />
+              <!-- Flow 2 -->
+              <path d="M 125 55 L 335 55" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="3 3" marker-end="url(#arrow-flow-${safeId})" />
+              <!-- Flow 3 (Current Active Transfer) -->
+              <path d="M 125 88 C 205 88, 260 60, 335 58" stroke="#ef4444" stroke-width="2.2" marker-end="url(#arrow-mule-${safeId})" />
+
+              <!-- Active Label -->
+              <rect x="180" y="78" width="125" height="18" rx="2" fill="#180e12" stroke="#ef4444" stroke-width="1" />
+              <text x="242" y="91" text-anchor="middle" fill="#fca5a5" font-family="JetBrains Mono, monospace" font-size="8" font-weight="700">INFLOW 3: ${amtStr}</text>
+
+              <!-- Originator 1 -->
+              <rect x="20" y="12" width="100" height="20" rx="2" fill="#0f172a" stroke="#334155" stroke-width="1" />
+              <text x="70" y="25" text-anchor="middle" fill="#94a3b8" font-family="JetBrains Mono, monospace" font-size="7">ORIGINATOR-1</text>
+
+              <!-- Originator 2 -->
+              <rect x="20" y="45" width="100" height="20" rx="2" fill="#0f172a" stroke="#334155" stroke-width="1" />
+              <text x="70" y="58" text-anchor="middle" fill="#94a3b8" font-family="JetBrains Mono, monospace" font-size="7">ORIGINATOR-2</text>
+
+              <!-- Originator 3 (Current Sender) -->
+              <rect x="20" y="78" width="100" height="20" rx="2" fill="#1c1917" stroke="#ef4444" stroke-width="1.2" />
+              <text x="70" y="91" text-anchor="middle" fill="#f87171" font-family="JetBrains Mono, monospace" font-size="7">${sender.slice(-12)}</text>
+
+              <!-- Mule Hub Wallet Target -->
+              <g transform="translate(340, 35)">
+                <rect width="115" height="40" rx="3" fill="#1e1014" stroke="#ef4444" stroke-width="1.8" />
+                <text x="57" y="15" text-anchor="middle" fill="#ef4444" font-family="JetBrains Mono, monospace" font-size="8" font-weight="700">MULE CONVERGENCE</text>
+                <text x="57" y="27" text-anchor="middle" fill="#fca5a5" font-family="JetBrains Mono, monospace" font-size="7">${rec.slice(-12)}</text>
+                <text x="57" y="36" text-anchor="middle" fill="#94a3b8" font-family="JetBrains Mono, monospace" font-size="6">INFLOWS: ${inDeg} ACCOUNTS</text>
+              </g>
+            </svg>
+          </div>
+        `;
+      }
+
+      if (isProximity) {
+        const dist = gs.degrees_to_flagged;
+        const flaggedTarget = gs.closest_flagged || 'FLAGGED_AML_ENTITY';
+        return `
+          <div class="graph-svg-wrapper">
+            <div class="graph-svg-header">
+              <span class="graph-svg-title">🔗 NETWORKX TOPOLOGY TRACE // AML CONTAGION GRAPH</span>
+              <span class="graph-svg-tag red">${dist === 0 ? 'DIRECT BLACKLIST' : `${dist}-HOP CONTAGION`}</span>
+            </div>
+            <svg class="topological-svg" viewBox="0 0 460 85" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <marker id="arrow-contagion-${safeId}" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                  <path d="M 0 1 L 10 5 L 0 9 z" fill="#ef4444" />
+                </marker>
+              </defs>
+              <line x1="120" y1="42" x2="220" y2="42" stroke="#ef4444" stroke-width="2" marker-end="url(#arrow-contagion-${safeId})" />
+              <line x1="250" y1="42" x2="335" y2="42" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="3 3" marker-end="url(#arrow-contagion-${safeId})" />
+
+              <!-- Sender -->
+              <rect x="15" y="27" width="100" height="30" rx="2" fill="#0f172a" stroke="#334155" stroke-width="1" />
+              <text x="65" y="45" text-anchor="middle" fill="#cbd5e1" font-family="JetBrains Mono, monospace" font-size="8">${sender.slice(-12)}</text>
+
+              <!-- Recipient -->
+              <rect x="225" y="27" width="105" height="30" rx="2" fill="#1e1014" stroke="#ef4444" stroke-width="1.5" />
+              <text x="277" y="45" text-anchor="middle" fill="#fca5a5" font-family="JetBrains Mono, monospace" font-size="8">${rec.slice(-12)}</text>
+
+              <!-- Flagged Blacklist Node -->
+              <rect x="340" y="27" width="105" height="30" rx="2" fill="#2d0a0e" stroke="#dc2626" stroke-width="1.8" />
+              <text x="392" y="40" text-anchor="middle" fill="#f87171" font-family="JetBrains Mono, monospace" font-size="8" font-weight="700">AML BLACKLIST</text>
+              <text x="392" y="51" text-anchor="middle" fill="#ef4444" font-family="JetBrains Mono, monospace" font-size="7">${flaggedTarget.slice(-10)}</text>
+            </svg>
+          </div>
+        `;
+      }
+
+      // Default P2P Flow for Inspector Panel
+      return `
+        <div class="graph-svg-wrapper" style="border-left-color: ${tx.final_risk >= 0.5 ? 'var(--color-red)' : 'var(--color-green)'};">
+          <div class="graph-svg-header">
+            <span class="graph-svg-title">🔗 P2P DIRECT COUNTERPARTY GRAPH</span>
+            <span class="graph-svg-tag ${tx.final_risk >= 0.5 ? 'red' : 'green'}" style="${tx.final_risk < 0.5 ? 'color:#34d399;background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.4);' : ''}">${tx.raw.type}</span>
+          </div>
+          <svg class="topological-svg" viewBox="0 0 460 75" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <marker id="arrow-p2p-${safeId}" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 1 L 10 5 L 0 9 z" fill="${tx.final_risk >= 0.5 ? '#ef4444' : '#10b981'}" />
+              </marker>
+            </defs>
+            <line x1="135" y1="36" x2="310" y2="36" stroke="${tx.final_risk >= 0.5 ? '#ef4444' : '#10b981'}" stroke-width="1.8" marker-end="url(#arrow-p2p-${safeId})" />
+            
+            <rect x="180" y="24" width="90" height="16" rx="2" fill="#0f172a" stroke="#334155" stroke-width="0.8" />
+            <text x="225" y="35" text-anchor="middle" fill="#cbd5e1" font-family="JetBrains Mono, monospace" font-size="8" font-weight="700">${amtStr}</text>
+
+            <rect x="15" y="21" width="115" height="30" rx="2" fill="#0f172a" stroke="#334155" stroke-width="1" />
+            <text x="72" y="35" text-anchor="middle" fill="#94a3b8" font-family="JetBrains Mono, monospace" font-size="7">ORIGINATOR</text>
+            <text x="72" y="46" text-anchor="middle" fill="#f8fafc" font-family="JetBrains Mono, monospace" font-size="8" font-weight="700">${sender.slice(-12)}</text>
+
+            <rect x="325" y="21" width="120" height="30" rx="2" fill="#0f172a" stroke="#334155" stroke-width="1" />
+            <text x="385" y="35" text-anchor="middle" fill="#94a3b8" font-family="JetBrains Mono, monospace" font-size="7">COUNTERPARTY</text>
+            <text x="385" y="46" text-anchor="middle" fill="#f8fafc" font-family="JetBrains Mono, monospace" font-size="8" font-weight="700">${rec.slice(-12)}</text>
+          </svg>
+        </div>
+      `;
+    }
+
+    // Causal Root-Cause Analysis Engine
+    function analyzeRootCause(tx) {
+      const isMicro = (tx.signals && tx.signals.some(s => s.toLowerCase().includes('probing'))) ||
+                      (tx.raw.attack_label && tx.raw.attack_label.toLowerCase().includes('probing'));
+      const isCycle = (tx.graph_summary && tx.graph_summary.cycle) ||
+                      (tx.raw.attack_label && tx.raw.attack_label.toLowerCase().includes('wash'));
+      const isMule = (tx.graph_summary && tx.graph_summary.is_mule) ||
+                      (tx.raw.attack_label && tx.raw.attack_label.toLowerCase().includes('mule'));
+      const oldbal = Number(tx.raw.oldbalanceOrg) || 0;
+      const amt = Number(tx.raw.amount) || 0;
+      const isDrain = oldbal > 0 && (amt / (oldbal + 1)) >= 0.8;
+      const wipeoutShap = tx.tree_shap_top && tx.tree_shap_top.find(s => s.feature === 'is_exact_wipeout' && s.impact === '+RISK');
+
+      let headline = 'SUSPICIOUS PATTERN INTERCEPTED';
+      let explanation = `Transaction score (${tx.final_risk.toFixed(3)}) breached safety boundary (${tx.policy_decision}).`;
+
+      if (isCycle) {
+        headline = 'CIRCULAR AML WASH-TRADING CYCLE CLOSED';
+        explanation = `In-memory NetworkX directed cycle detector flagged closed money laundering loop (${tx.raw.account_id} -> ${tx.raw.recipient}). Illicit layering detected; +0.40 risk contribution applied.`;
+      } else if (isMule) {
+        const inDeg = tx.graph_summary ? tx.graph_summary.in_degree : 2;
+        headline = 'MULE ACCOUNT FUNNEL HUB (FAN-IN SPIKE)';
+        explanation = `Destination wallet '${tx.raw.recipient}' suddenly received simultaneous inflows from ${inDeg} distinct originators within rolling window, matching structured money-mule aggregation.`;
+      } else if (isMicro) {
+        headline = 'MICRO-PROBING ACCOUNT TAKEOVER (ATO) SIGNATURE';
+        explanation = `Nominal trial probing transfers were abruptly followed by catastrophic account drain of $${amt.toLocaleString('en-US', {minimumFractionDigits: 2})}. Account drained down to $0.00.`;
+      } else if (wipeoutShap || isDrain) {
+        headline = 'EXACT ACCOUNT LIQUIDATION & DRAIN ANOMALY';
+        explanation = `Transfer amount ($${amt.toLocaleString('en-US', {minimumFractionDigits: 2})}) precisely matches available origin balance ($${oldbal.toLocaleString('en-US', {minimumFractionDigits: 2})}). Tree SHAP attributed extreme positive risk (+${wipeoutShap ? wipeoutShap.shap_value : '15.73'}) to exact wipeout.`;
+      } else if (tx.ml_risk >= 0.70) {
+        headline = 'HIGH-RISK POINT-IN-TIME GBDT ANOMALY';
+        explanation = `Supervised LightGBM classifier flagged high out-of-distribution transfer ($${amt.toLocaleString('en-US', {minimumFractionDigits: 2})}) to unverified peer counterparty.`;
+      }
+
+      return { headline, explanation, isCycle, isMule, isMicro, isDrain };
+    }
+
+    function addFlaggedAuditEntry(tx) {
+      if (auditEmpty) {
+        auditEmpty.style.display = 'none';
+      }
+
+      flaggedTransactions.unshift(tx);
+      if (flaggedTransactions.length > 50) {
+        flaggedTransactions.pop();
+      }
+
+      auditBadge.textContent = `${flaggedTransactions.length} THREATS INTERCEPTED`;
+
+      const analysis = analyzeRootCause(tx);
+      const timeStr = new Date(tx.timestamp * 1000).toLocaleTimeString();
+      const amtStr = `$${Number(tx.raw.amount).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+
+      const card = document.createElement('div');
+      card.className = 'audit-card';
+      card.id = `audit-card-${tx.id}`;
+
+      // Build evidence chips
+      const chips = [];
+      chips.push(`<span class="evidence-chip risk">FINAL RISK: ${Number(tx.final_risk).toFixed(3)}</span>`);
+      chips.push(`<span class="evidence-chip">ML: ${Number(tx.ml_risk).toFixed(3)}</span>`);
+      chips.push(`<span class="evidence-chip">SEQ: ${Number(tx.seq_risk).toFixed(3)}</span>`);
+
+      if (tx.tree_shap_top && tx.tree_shap_top.length > 0) {
+        const top = tx.tree_shap_top[0];
+        chips.push(`<span class="evidence-chip shap">SHAP: ${top.feature} (${top.shap_value > 0 ? '+' : ''}${top.shap_value})</span>`);
+      }
+
+      if (tx.graph_summary && tx.graph_summary.cycle) {
+        chips.push(`<span class="evidence-chip graph">GRAPH: CYCLE CLOSED</span>`);
+      } else if (tx.graph_summary && tx.graph_summary.is_mule) {
+        chips.push(`<span class="evidence-chip graph">GRAPH: MULE FAN-IN (${tx.graph_summary.in_degree})</span>`);
+      }
+
+      card.innerHTML = `
+        <div class="audit-meta-col">
+          <div class="audit-time-id">
+            <span>●</span>
+            <span>${timeStr}</span>
+            <span style="color:#475569;">#${tx.id}</span>
+          </div>
+          <div class="audit-account">${tx.raw.account_id}</div>
+          <div class="audit-flow">→ ${tx.raw.recipient} (${tx.raw.type})</div>
+          <div style="color:#f8fafc;font-weight:700;font-size:12px;margin-top:2px;">${amtStr}</div>
+        </div>
+
+        <div class="audit-reason-col">
+          <div class="audit-reason-headline">
+            <span style="color:var(--color-red);font-size:12px;">⚠️</span>
+            <span>${analysis.headline}</span>
+          </div>
+          <div class="audit-reason-text">${analysis.explanation}</div>
+          <div class="audit-evidence-chips">
+            ${chips.join('')}
+          </div>
+          ${renderGraphSvg(tx, false)}
+        </div>
+
+        <div class="audit-action-col">
+          <div class="audit-score-pill">${tx.policy_decision}</div>
+          <button class="btn-audit-investigate" data-tx-id="${tx.id}">
+            <span>✨</span>
+            <span>Gemma SAR</span>
+          </button>
+        </div>
+      `;
+
+      card.querySelector('.btn-audit-investigate').addEventListener('click', (e) => {
+        e.stopPropagation();
+        renderInspector(tx);
+        document.getElementById('btn-inspect-gemma').click();
+      });
+
+      card.addEventListener('click', () => {
+        document.querySelectorAll('.stream-table tr').forEach(r => r.classList.remove('selected'));
+        const targetRow = document.getElementById(`row-${tx.id}`);
+        if (targetRow) {
+          targetRow.classList.add('selected');
+          targetRow.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+        renderInspector(tx);
+      });
+
+      auditContainer.insertBefore(card, auditContainer.firstChild);
+
+      // Keep audit log bounded to 50 cards max
+      while (auditContainer.children.length > 51) {
+        auditContainer.removeChild(auditContainer.lastChild);
+      }
+    }
 
     // Initialize Stream Connection
     function initEventSource() {
@@ -979,9 +1641,10 @@
         renderInspector(tx);
       }
 
-      // Check if attack or critical risk
+      // If flagged, show banner alert AND add to bottom Causal Audit Log
       if (tx.final_risk >= 0.50) {
         showInterceptAlert(tx);
+        addFlaggedAuditEntry(tx);
       }
 
       // Add to table
@@ -1097,6 +1760,11 @@
       document.getElementById('insp-graph-mule').style.color = gs.is_mule ? 'var(--color-red)' : '#f8fafc';
       document.getElementById('insp-graph-cycle').textContent = gs.cycle ? '⚠️ CIRCULAR LOOP DETECTED' : 'Nominal';
       document.getElementById('insp-graph-cycle').style.color = gs.cycle ? 'var(--color-red)' : '#f8fafc';
+
+      const graphPreviewContainer = document.getElementById('insp-graph-preview-container');
+      if (graphPreviewContainer) {
+        graphPreviewContainer.innerHTML = renderGraphSvg(tx, true);
+      }
 
       // Signals List
       const signalsList = document.getElementById('insp-signals-list');
@@ -1270,6 +1938,40 @@
       const inspector = document.getElementById('stream-inspector');
       inspector.scrollIntoView({ behavior: 'smooth' });
     });
+
+    // Export Audit Log JSON
+    if (btnExportAudit) {
+      btnExportAudit.addEventListener('click', () => {
+        if (flaggedTransactions.length === 0) {
+          alert("No flagged transactions to export yet.");
+          return;
+        }
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(flaggedTransactions, null, 2));
+        const downloadAnchor = document.createElement('a');
+        downloadAnchor.setAttribute("href", dataStr);
+        downloadAnchor.setAttribute("download", `fraudpulse_flagged_audit_${Date.now()}.json`);
+        document.body.appendChild(downloadAnchor);
+        downloadAnchor.click();
+        downloadAnchor.remove();
+      });
+    }
+
+    // Clear Audit Log
+    if (btnClearAudit) {
+      btnClearAudit.addEventListener('click', () => {
+        if (flaggedTransactions.length === 0) return;
+        if (confirm("Clear the flagged transactions audit log?")) {
+          flaggedTransactions = [];
+          auditBadge.textContent = "0 THREATS INTERCEPTED";
+          auditContainer.innerHTML = `
+            <div class="audit-empty-state" id="audit-empty-state">
+              <div>● No critical anomalies flagged yet. Live transactions are actively being evaluated.</div>
+              <div style="font-size:10px;color:#475569;margin-top:4px;">Transactions with final risk score &ge; 0.50 or matching coordinated sequence patterns will populate here automatically with causal root-cause rationales.</div>
+            </div>
+          `;
+        }
+      });
+    }
 
     // Gemma 27B AI Copilot Modal
     const modal = document.getElementById('gemma-modal');

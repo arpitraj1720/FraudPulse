@@ -121,9 +121,11 @@ class StreamSimulator:
                 "source": "Synthetic Ground-Truth Fraud",
             })
 
-    def _queue_random_attack_sequence(self) -> None:
+    def _queue_random_attack_sequence(self, attack_type: Optional[str] = None) -> None:
         """Inject a realistic multi-step attack pattern into the stream."""
-        attack_type = random.choice(["micro_probing", "mule_fan_in", "wash_circle"])
+        if not attack_type or attack_type == "random":
+            attack_type = random.choice(["micro_probing", "mule_fan_in", "wash_circle"])
+
         target_account = f"ACC-ATTACK-{random.randint(100, 999)}"
         mule_wallet = f"Wallet_Mule_{random.randint(50, 99)}"
 
@@ -315,8 +317,13 @@ class StreamSimulator:
             "is_ground_truth_fraud": is_fraud,
             "graph_summary": {
                 "in_degree": seq_eval.get("graph_metrics", {}).get("recipient_in_degree", 1),
+                "sender_out_degree": seq_eval.get("graph_metrics", {}).get("sender_out_degree", 1),
                 "is_mule": seq_eval.get("graph_metrics", {}).get("is_mule_fan_in", False),
+                "is_smurfing": seq_eval.get("graph_metrics", {}).get("is_smurfing_fan_out", False),
                 "cycle": seq_eval.get("graph_metrics", {}).get("cycle_detected", False),
+                "cycle_path": seq_eval.get("graph_metrics", {}).get("cycle_path", []),
+                "degrees_to_flagged": seq_eval.get("graph_metrics", {}).get("degrees_to_flagged_fraud", -1),
+                "closest_flagged": seq_eval.get("graph_metrics", {}).get("closest_flagged_entity"),
             },
         }
 
