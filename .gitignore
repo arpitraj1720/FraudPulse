@@ -1,0 +1,53 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Datasets and large binary files
+data/*.csv
+data/*.zip
+*.csv
+*.joblib
+!data/sample_*.csv
+
+# OS specific
+.DS_Store
+Thumbs.db
+
+# Logs & temp
+*.log
+scratch/
+.system_generated/
+
+# Node / Frontend
+node_modules/
+dist/
+.vite/

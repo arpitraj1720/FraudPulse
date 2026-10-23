@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FraudPulse — Real-Time Sequence Fraud Detection & Gemma AI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Top Navigation -->
+    <header class="app-header">
+      <div class="brand">
+        <div class="brand-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+          </svg>
+        </div>
+        <div>
+          <div class="brand-title">FraudPulse</div>
+          <div class="brand-tagline">Catch the Pattern, Not Just the Transaction</div>
+        </div>
+      </div>
+
+      <div class="header-pills">
+        <div class="status-pill" id="pill-model">
+          <span class="status-dot green"></span>
+          <span class="pill-label">Model:</span>
+          <span class="pill-value" id="val-model">RandomForest (PaySim)</span>
+        </div>
+        <div class="status-pill" id="pill-gemma">
+          <span class="status-dot purple"></span>
+          <span class="pill-label">AI:</span>
+          <span class="pill-value" id="val-gemma">Gemma 4-26B Active</span>
+        </div>
+        <button class="btn-ghost" id="btn-open-metrics">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="20" x2="18" y2="10"></line>
+            <line x1="12" y1="20" x2="12" y2="4"></line>
+            <line x1="6" y1="20" x2="6" y2="14"></line>
+          </svg>
+          Audit Metrics
+        </button>
+        <button class="btn-ghost text-danger" id="btn-reset">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+            <path d="M3 3v5h5"></path>
+          </svg>
+          Reset State
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Grid -->
+    <main class="dashboard-grid">
+      <!-- Left Column: Controls & Scenarios -->
+      <section class="panel control-panel">
+        <div class="panel-header">
+          <h2>1. Test Scenarios</h2>
+          <span class="badge badge-accent">1-Click Replay</span>
+        </div>
+        <p class="panel-subtitle">Demonstrates how sequence awareness distinguishes attacks from normal spikes.</p>
+
+        <div class="scenario-list" id="scenario-list">
+          <!-- Dynamically populated -->
+        </div>
+
+        <div class="divider"><span>OR INJECT TRANSACTION</span></div>
+
+        <div class="panel-header compact">
+          <h3>Custom Transaction</h3>
+        </div>
+        <form id="tx-form" class="custom-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="acc-id">Account ID</label>
+              <input type="text" id="acc-id" value="ACC-DEMO-01" required>
+            </div>
+            <div class="form-group">
+              <label for="tx-type">Type</label>
+              <select id="tx-type">
+                <option value="TRANSFER" selected>TRANSFER</option>
+                <option value="CASH_OUT">CASH_OUT</option>
+                <option value="PAYMENT">PAYMENT</option>
+                <option value="CASH_IN">CASH_IN</option>
+                <option value="DEBIT">DEBIT</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="tx-amount">Amount ($)</label>
+              <input type="number" id="tx-amount" step="0.01" value="25000.00" required>
+            </div>
+            <div class="form-group">
+              <label for="tx-recipient">Recipient</label>
+              <input type="text" id="tx-recipient" value="Wallet_Ext_42" required>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary" id="btn-submit-tx">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polyline>
+            </svg>
+            Score Transaction
+          </button>
+        </form>
+      </section>
+
+      <!-- Center Column: Sequence Feed & Timeline -->
+      <section class="panel sequence-panel">
+        <div class="panel-header">
+          <div>
+            <h2>2. Sequence & Timeline Feed</h2>
+            <div class="panel-subtitle" id="account-context">Monitoring: <span class="highlight">No active account</span></div>
+          </div>
+          <div class="replay-status" id="replay-status">Ready</div>
+        </div>
+
+        <div class="timeline-container">
+          <div class="timeline" id="timeline-feed">
+            <div class="empty-state">
+              <div class="empty-icon">📊</div>
+              <div class="empty-title">No transactions processed yet</div>
+              <div class="empty-desc">Click a scenario on the left or submit a custom transaction to start the live sequence stream.</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right Column: Hybrid Risk Radar & Gemma Investigation -->
+      <section class="panel analysis-panel">
+        <div class="panel-header">
+          <h2>3. Real-Time Risk & AI Investigator</h2>
+          <span class="badge badge-gemma">Gemma 4-26B</span>
+        </div>
+
+        <!-- Risk Score Breakdown -->
+        <div class="score-card" id="score-card">
+          <div class="score-main">
+            <div class="score-dial-wrap">
+              <div class="score-ring" id="score-ring">
+                <span class="score-number" id="final-score-val">0.00</span>
+              </div>
+            </div>
+            <div class="score-meta">
+              <div class="risk-tier" id="risk-tier-badge">IDLE</div>
+              <div class="policy-decision" id="policy-decision-text">Awaiting input</div>
+              <div class="action-recommendation" id="action-recommendation-text">—</div>
+            </div>
+          </div>
+
+          <div class="score-breakdown-bars">
+            <div class="bar-group">
+              <div class="bar-labels">
+                <span>ML Static Risk (Single Row)</span>
+                <span id="ml-score-val">0.00</span>
+              </div>
+              <div class="progress-track">
+                <div class="progress-fill fill-blue" id="ml-bar" style="width: 0%"></div>
+              </div>
+            </div>
+
+            <div class="bar-group">
+              <div class="bar-labels">
+                <span>Behavioral Sequence Score</span>
+                <span id="seq-score-val">0.00</span>
+              </div>
+              <div class="progress-track">
+                <div class="progress-fill fill-amber" id="seq-bar" style="width: 0%"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Gemma AI Investigation Card -->
+        <div class="investigation-container" id="investigation-container">
+          <div class="investigation-header">
+            <div class="ai-badge">
+              <span class="ai-sparkle">✦</span>
+              <span>Gemma AI Investigation Report</span>
+            </div>
+            <span class="badge-source" id="inv-source">Awaiting Escalation</span>
+          </div>
+
+          <div class="investigation-body" id="inv-body">
+            <div class="inv-placeholder">
+              Transactions with elevated risk or sequence anomalies (e.g., Micro-Probing) automatically trigger a comprehensive investigation by Gemma.
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Metrics Modal -->
+    <div class="modal-backdrop" id="metrics-modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>Supervised Model Audit & Held-Out Test Metrics</h3>
+          <button class="btn-close" id="btn-close-modal">&times;</button>
+        </div>
+        <div class="modal-body" id="modal-metrics-body">
+          Loading metrics...
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
