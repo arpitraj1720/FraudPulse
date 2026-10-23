@@ -6,46 +6,51 @@
   "training_fraud_rows": 6570,
   "test_rows": 1272524,
   "test_fraud_rows": 1643,
-  "average_precision_pr_auc": 0.423860185516787,
-  "roc_auc": 0.9652448112224695,
+  "average_precision_pr_auc": 0.9976263658237507,
+  "roc_auc": 0.9994795320488787,
   "threshold_reports": [
     {
       "threshold": 0.5,
-      "precision": 0.026754153878717324,
-      "recall": 0.7693244065733414,
-      "f1": 0.05171003109147439,
-      "true_positives": 1264,
-      "false_positives": 45981,
-      "true_negatives": 1224900,
-      "false_negatives": 379,
-      "false_positive_rate": 0.0361804134297389
+      "precision": 0.9975654290931223,
+      "recall": 0.9975654290931223,
+      "f1": 0.9975654290931223,
+      "true_positives": 1639,
+      "false_positives": 4,
+      "true_negatives": 1270877,
+      "false_negatives": 4,
+      "false_positive_rate": 3.1474229294481543e-06
     },
     {
       "threshold": 0.25,
-      "precision": 0.009911537214580149,
-      "recall": 0.9117468046256847,
-      "f1": 0.019609896583322423,
-      "true_positives": 1498,
-      "false_positives": 149639,
-      "true_negatives": 1121242,
-      "false_negatives": 145,
-      "false_positive_rate": 0.11774430493492309
+      "precision": 0.9479467900520532,
+      "recall": 0.9975654290931223,
+      "f1": 0.972123368920522,
+      "true_positives": 1639,
+      "false_positives": 90,
+      "true_negatives": 1270791,
+      "false_negatives": 4,
+      "false_positive_rate": 7.081701591258348e-05
     },
     {
       "threshold": 0.1,
-      "precision": 0.0032152250362008335,
-      "recall": 0.9933049300060864,
-      "f1": 0.006409702530104393,
-      "true_positives": 1632,
-      "false_positives": 505953,
-      "true_negatives": 764928,
-      "false_negatives": 11,
-      "false_positive_rate": 0.39811201835577054
+      "precision": 0.5557816208884367,
+      "recall": 0.9975654290931223,
+      "f1": 0.7138501742160279,
+      "true_positives": 1639,
+      "false_positives": 1310,
+      "true_negatives": 1269571,
+      "false_negatives": 4,
+      "false_positive_rate": 0.0010307810093942707
     }
   ],
   "features": [
     "step",
     "log_amount",
+    "log_oldbalance",
+    "balance_drain_ratio",
+    "is_exact_wipeout",
+    "is_dest_merchant",
+    "is_round_amount",
     "hour_sin",
     "hour_cos",
     "type_CASH_IN",
@@ -55,5 +60,5 @@
     "type_TRANSFER"
   ],
   "warning": "Synthetic-data prototype. Thresholds are not calibrated for real-world deployment.",
-  "elapsed_seconds": 5.89
+  "elapsed_seconds": 7.22
 }

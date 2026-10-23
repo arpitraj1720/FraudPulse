@@ -87,7 +87,13 @@ class TransactionPayload(BaseModel):
     auto_investigate: bool = Field(default=True, description="Whether to call Gemma if risk threshold reached")
 
 
-def predict_ml_risk(tx_type: str, amount: float, step: int) -> float:
+def predict_ml_risk(
+    tx_type: str,
+    amount: float,
+    step: int = 1,
+    recipient: str = "",
+    oldbalanceOrg: Optional[float] = None,
+) -> float:
     """Predict point-in-time anomaly probability from trained Random Forest."""
     if not model_bundle or "model" not in model_bundle:
         # Fallback heuristic if model not trained
@@ -99,7 +105,17 @@ def predict_ml_risk(tx_type: str, amount: float, step: int) -> float:
     model = model_bundle["model"]
     feature_columns = model_bundle["feature_columns"]
 
-    raw = pd.DataFrame([{"step": step, "type": tx_type, "amount": amount}])
+    raw_dict: Dict[str, Any] = {
+        "step": step,
+        "type": tx_type,
+        "amount": amount,
+        "recipient": recipient,
+        "nameDest": recipient,
+    }
+    if oldbalanceOrg is not None:
+        raw_dict["oldbalanceOrg"] = oldbalanceOrg
+
+    raw = pd.DataFrame([raw_dict])
     X = make_features(raw).reindex(columns=feature_columns, fill_value=0)
     prob = float(model.predict_proba(X)[0, 1])
     return prob
@@ -136,11 +152,46 @@ def reset_engine(account_id: Optional[str] = None) -> Dict[str, Any]:
     return {"status": "ok", "message": f"Sequence state reset for {'all accounts' if not account_id else account_id}"}
 
 
+class InvestigatePayload(BaseModel):
+    transaction: Dict[str, Any]
+    sequence_evaluation: Dict[str, Any]
+    hybrid_risk: Dict[str, Any]
+
+
+@app.post("/api/investigate")
+def run_investigation(payload: InvestigatePayload) -> Dict[str, Any]:
+    """Tier 2 Asynchronous Intelligence: Gemma 27B Autonomous Copilot investigation."""
+    start_t = time.time()
+    try:
+        brief = gemma_investigator.investigate(
+            payload.transaction,
+            payload.sequence_evaluation,
+            payload.hybrid_risk,
+        )
+    except Exception as e:
+        print(f"[!] Error in investigation endpoint: {e}")
+        brief = gemma_investigator._deterministic_fallback(
+            payload.transaction,
+            payload.sequence_evaluation,
+            payload.hybrid_risk,
+            reason="Adaptive Resiliency Mode",
+        )
+    brief["generation_time_ms"] = round((time.time() - start_t) * 1000, 2)
+    return brief
+
+
 @app.post("/api/score")
 def score_transaction(payload: TransactionPayload) -> Dict[str, Any]:
-    """Score a transaction through ML, Sequence Engine, and conditional Gemma Investigation."""
+    """Tier 1 Hot Path: Sub-5ms scoring via ML classifier and Sequence Engine."""
+    start_t = time.time()
+
     # 1. ML Classifier
-    ml_prob = predict_ml_risk(payload.type, payload.amount, payload.step)
+    ml_prob = predict_ml_risk(
+        tx_type=payload.type,
+        amount=payload.amount,
+        step=payload.step,
+        recipient=payload.recipient,
+    )
 
     # 2. Sequence Engine
     seq_eval = sequence_engine.evaluate_transaction(
@@ -153,32 +204,36 @@ def score_transaction(payload: TransactionPayload) -> Dict[str, Any]:
 
     # 3. Hybrid Risk Aggregator
     hybrid_eval = compute_hybrid_risk(ml_prob, seq_eval)
+    tier1_latency_ms = round((time.time() - start_t) * 1000, 2)
 
-    # 4. Conditional Gemma Investigation
-    investigation = None
-    if payload.auto_investigate and hybrid_eval["requires_investigation"]:
-        tx_dict = {
-            "account_id": payload.account_id,
-            "type": payload.type,
-            "amount": payload.amount,
-            "recipient": payload.recipient,
-            "step": payload.step,
-        }
-        investigation = gemma_investigator.investigate(tx_dict, seq_eval, hybrid_eval)
+    tx_dict = {
+        "account_id": payload.account_id,
+        "type": payload.type,
+        "amount": payload.amount,
+        "recipient": payload.recipient,
+        "step": payload.step,
+    }
 
     return {
         "transaction": payload.dict(),
         "ml_risk": round(ml_prob, 4),
         "sequence_evaluation": seq_eval,
         "hybrid_risk": hybrid_eval,
-        "investigation": investigation,
+        "tier1_latency_ms": tier1_latency_ms,
+        "requires_investigation": hybrid_eval["requires_investigation"],
+        "investigation_payload": {
+            "transaction": tx_dict,
+            "sequence_evaluation": seq_eval,
+            "hybrid_risk": hybrid_eval,
+        } if hybrid_eval["requires_investigation"] else None,
         "timestamp": time.time(),
     }
 
 
 @app.post("/api/scenarios/replay/{scenario_id}")
 def replay_scenario(scenario_id: str) -> Dict[str, Any]:
-    """Replays an entire scenario in sequence, returning step-by-step telemetry."""
+    """Tier 1 Hot Path: Replays entire scenario in sub-5ms, returning telemetry immediately."""
+    start_time = time.time()
     try:
         scenario = get_scenario(scenario_id)
     except ValueError as e:
@@ -188,10 +243,15 @@ def replay_scenario(scenario_id: str) -> Dict[str, Any]:
     sequence_engine.reset(account_id)
 
     step_results = []
-    final_investigation = None
 
     for tx in scenario["transactions"]:
-        ml_prob = predict_ml_risk(tx["type"], tx["amount"], tx["step"])
+        ml_prob = predict_ml_risk(
+            tx_type=tx["type"],
+            amount=tx["amount"],
+            step=tx["step"],
+            recipient=tx.get("recipient", ""),
+            oldbalanceOrg=tx.get("oldbalanceOrg"),
+        )
         seq_eval = sequence_engine.evaluate_transaction(
             account_id=account_id,
             amount=tx["amount"],
@@ -221,26 +281,25 @@ def replay_scenario(scenario_id: str) -> Dict[str, Any]:
             "raw_hybrid_eval": hybrid_eval,
         })
 
-    # Trigger Gemma AI investigation ONCE on the single most critical / highest-risk step
+    tier1_latency_ms = round((time.time() - start_time) * 1000, 2)
+
+    # Identify the single most critical step that requires Tier 2 Gemma escalation
     critical_step = max(step_results, key=lambda s: s["final_risk_score"]) if step_results else None
-    if critical_step and critical_step.get("requires_investigation"):
-        tx_dict = {
-            "account_id": account_id,
-            "type": critical_step["type"],
-            "amount": critical_step["amount"],
-            "recipient": critical_step["recipient"],
-            "step": critical_step["step"],
+    requires_inv = bool(critical_step and critical_step.get("requires_investigation"))
+
+    investigation_payload = None
+    if requires_inv and critical_step:
+        investigation_payload = {
+            "transaction": {
+                "account_id": account_id,
+                "type": critical_step["type"],
+                "amount": critical_step["amount"],
+                "recipient": critical_step["recipient"],
+                "step": critical_step["step"],
+            },
+            "sequence_evaluation": critical_step["raw_seq_eval"],
+            "hybrid_risk": critical_step["raw_hybrid_eval"],
         }
-        try:
-            final_investigation = gemma_investigator.investigate(
-                tx_dict, critical_step["raw_seq_eval"], critical_step["raw_hybrid_eval"]
-            )
-        except Exception as e:
-            print(f"[!] Error in investigation replay: {e}")
-            final_investigation = gemma_investigator._deterministic_fallback(
-                tx_dict, critical_step["raw_seq_eval"], critical_step["raw_hybrid_eval"], reason="Adaptive Resiliency Mode"
-            )
-        critical_step["investigation"] = final_investigation
 
     # Clean up internal raw dicts before returning JSON
     for s in step_results:
@@ -252,7 +311,9 @@ def replay_scenario(scenario_id: str) -> Dict[str, Any]:
         "account_id": account_id,
         "steps": step_results,
         "final_step": critical_step,
-        "final_investigation": final_investigation,
+        "tier1_latency_ms": tier1_latency_ms,
+        "requires_investigation": requires_inv,
+        "investigation_payload": investigation_payload,
     }
 
 

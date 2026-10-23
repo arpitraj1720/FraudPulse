@@ -229,7 +229,10 @@ def compute_hybrid_risk(ml_prob: float, sequence_eval: Dict[str, Any]) -> Dict[s
         combined_score = max(0.82, 0.20 * ml_prob + 0.80 * seq_score)
     elif sequence_eval.get("is_established_payee"):
         # Verified recipient trust discounts static ML false alarms
-        combined_score = 0.20 * ml_prob + 0.80 * seq_score
+        combined_score = min(0.38, 0.20 * ml_prob + 0.80 * seq_score)
+    elif seq_score >= 0.50:
+        # High velocity / multi-payee behavioral cascade dominates
+        combined_score = max(seq_score, 0.30 * ml_prob + 0.70 * seq_score)
     else:
         combined_score = 0.40 * ml_prob + 0.60 * seq_score
 

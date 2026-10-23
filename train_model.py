@@ -36,18 +36,53 @@ PAY_SIM_TYPES = ["CASH_IN", "CASH_OUT", "DEBIT", "PAYMENT", "TRANSFER"]
 
 
 def make_features(raw: pd.DataFrame) -> pd.DataFrame:
-    """Create only transaction-time features; deliberately avoid post-transaction balances."""
+    """Create transaction-time pre-authorization features; deliberately avoid post-transaction balances."""
+    features = pd.DataFrame(index=raw.index)
     step = pd.to_numeric(raw["step"], errors="coerce").fillna(0).astype("float32")
     amount = pd.to_numeric(raw["amount"], errors="coerce").fillna(0).clip(lower=0).astype("float32")
-    hour = (step % 24.0) / 24.0
-    features = pd.DataFrame(index=raw.index)
+
+    # Balance features (pre-transaction origin balance)
+    if "oldbalanceOrg" in raw.columns:
+        oldbal = pd.to_numeric(raw["oldbalanceOrg"], errors="coerce").fillna(0).clip(lower=0).astype("float32")
+    else:
+        oldbal = pd.Series(0.0, index=raw.index, dtype="float32")
+
+    # Destination entity type (Merchant vs Customer wallet)
+    if "nameDest" in raw.columns:
+        dest_str = raw["nameDest"].astype(str)
+        is_dest_merchant = dest_str.str.startswith("M").astype("uint8")
+    elif "recipient" in raw.columns:
+        dest_str = raw["recipient"].astype(str)
+        is_dest_merchant = (dest_str.str.startswith("M") | dest_str.str.lower().str.contains("merchant")).astype("uint8")
+    else:
+        is_dest_merchant = pd.Series(0, index=raw.index, dtype="uint8")
+
     features["step"] = step
     features["log_amount"] = np.log1p(amount)
+    features["log_oldbalance"] = np.log1p(oldbal)
+
+    # Ratio: liquidation drain proportion (clipped to 10.0 to prevent infs)
+    features["balance_drain_ratio"] = (amount / (oldbal + 1.0)).clip(0.0, 10.0).astype("float32")
+
+    # Exact liquidation indicator: fraud in PaySim frequently matches old balance within $1
+    features["is_exact_wipeout"] = ((np.abs(oldbal - amount) < 1.0) & (amount > 100)).astype("uint8")
+
+    # Destination entity: True for merchants (safe), False for peer wallets
+    features["is_dest_merchant"] = is_dest_merchant
+
+    # Round amount heuristic (e.g. $10,000, $50,000)
+    features["is_round_amount"] = ((amount % 100 == 0) & (amount >= 1000)).astype("uint8")
+
+    # Cyclical hour features
+    hour = (step % 24.0) / 24.0
     features["hour_sin"] = np.sin(2 * np.pi * hour).astype("float32")
     features["hour_cos"] = np.cos(2 * np.pi * hour).astype("float32")
+
+    # One-hot encoded transaction types
     raw_type = raw["type"].astype(str)
     for t in PAY_SIM_TYPES:
         features[f"type_{t}"] = (raw_type == t).astype("uint8")
+
     return features
 
 
@@ -68,8 +103,8 @@ def report_at_threshold(y_true, prob, threshold: float) -> dict:
     return out
 
 
-def generate_synthetic_data(n_samples: int = 15_000) -> pd.DataFrame:
-    """Generate realistic PaySim-like synthetic data for instant hackathon testing without 470MB download."""
+def generate_synthetic_data(n_samples: int = 25_000) -> pd.DataFrame:
+    """Generate realistic PaySim-like synthetic data with balance dynamics."""
     np.random.seed(RANDOM_STATE)
     steps = np.random.randint(1, 744, size=n_samples)
     types = np.random.choice(
@@ -77,11 +112,16 @@ def generate_synthetic_data(n_samples: int = 15_000) -> pd.DataFrame:
         size=n_samples,
         p=[0.22, 0.35, 0.01, 0.34, 0.08],
     )
-    # Amounts generally follow log-normal
     amounts = np.random.lognormal(mean=8.5, sigma=1.8, size=n_samples).round(2)
-    # In PaySim, fraud is strictly TRANSFER and CASH_OUT, often high amounts
+    oldbal = np.random.lognormal(mean=9.2, sigma=2.0, size=n_samples).round(2)
+
+    dest_ids = [
+        f"M{np.random.randint(100000, 999999)}" if t == "PAYMENT" else f"C{np.random.randint(100000, 999999)}"
+        for t in types
+    ]
+
     is_fraud = np.zeros(n_samples, dtype=np.uint8)
-    fraud_candidates = np.where(np.isin(types, ["TRANSFER", "CASH_OUT"]) & (amounts > 50_000))[0]
+    fraud_candidates = np.where(np.isin(types, ["TRANSFER", "CASH_OUT"]) & (amounts > 30_000))[0]
     if len(fraud_candidates) > 0:
         fraud_idx = np.random.choice(
             fraud_candidates,
@@ -89,11 +129,16 @@ def generate_synthetic_data(n_samples: int = 15_000) -> pd.DataFrame:
             replace=False,
         )
         is_fraud[fraud_idx] = 1
+        for idx in fraud_idx:
+            amounts[idx] = oldbal[idx]  # exact balance wipeout pattern
+            dest_ids[idx] = f"C{np.random.randint(100000, 999999)}"
 
     df = pd.DataFrame({
         "step": steps.astype("int16"),
         "type": types,
         "amount": amounts.astype("float32"),
+        "oldbalanceOrg": oldbal.astype("float32"),
+        "nameDest": dest_ids,
         "isFraud": is_fraud,
     })
     return df
@@ -105,8 +150,15 @@ def main() -> None:
     data_path = Path(csv_arg) if csv_arg else DATA_PATH
 
     started = time.time()
-    usecols = ["step", "type", "amount", "isFraud"]
-    dtypes = {"step": "int16", "type": "category", "amount": "float32", "isFraud": "int8"}
+    usecols = ["step", "type", "amount", "oldbalanceOrg", "nameDest", "isFraud"]
+    dtypes = {
+        "step": "int16",
+        "type": "category",
+        "amount": "float32",
+        "oldbalanceOrg": "float32",
+        "nameDest": "string",
+        "isFraud": "int8",
+    }
 
     if use_synthetic or not data_path.exists():
         if not data_path.exists() and not use_synthetic:
