@@ -117,6 +117,20 @@ SCENARIOS: List[Dict[str, Any]] = [
             {"step": 1, "type": "CASH_OUT", "amount": 181.00, "recipient": "C38997010", "oldbalanceOrg": 181.00, "label": "PaySim Fraud Log: Immediate CASH_OUT (Row 3, isFraud=1)", "delay_ms": 800},
         ],
     },
+    {
+        "id": "circular_mule_ring",
+        "title": "Circular Wash & Mule Hub Ring",
+        "badge": "Graph Topology Attack",
+        "badge_color": "danger",
+        "description": "Multi-hop layering attack: funds bounce from ACC-RING-1 through an intermediary node to a blacklisted offshore mule hub before cycling back to origin. Caught by Graph Cycle & Proximity Detection.",
+        "account_id": "ACC-RING-1",
+        "expected_verdict": "CRITICAL — Circular Laundering Loop & Blacklist Interaction",
+        "transactions": [
+            {"step": 1, "type": "TRANSFER", "amount": 14500.00, "sender": "ACC-RING-1", "recipient": "Wallet_Node_B", "oldbalanceOrg": 15000.00, "label": "Hop 1: Outbound transfer to intermediary wallet", "delay_ms": 500},
+            {"step": 2, "type": "TRANSFER", "amount": 14200.00, "sender": "Wallet_Node_B", "recipient": "Wallet_99x_Offshore", "oldbalanceOrg": 14500.00, "label": "Hop 2: Transfer to blacklisted offshore mule hub", "delay_ms": 600},
+            {"step": 3, "type": "TRANSFER", "amount": 13900.00, "sender": "Wallet_99x_Offshore", "recipient": "ACC-RING-1", "oldbalanceOrg": 14200.00, "label": "Hop 3: Circular return transfer completing the wash loop", "delay_ms": 700},
+        ],
+    },
 ]
 
 

@@ -11,6 +11,7 @@ import time
 from pathlib import Path
 
 import joblib
+import lightgbm as lgb
 import numpy as np
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
@@ -201,22 +202,33 @@ def main() -> None:
     feature_columns = list(X_train.columns)
     X_test = make_features(test_raw).reindex(columns=feature_columns, fill_value=0)
 
-    model = RandomForestClassifier(
-        n_estimators=100,
-        max_depth=14,
-        min_samples_leaf=2,
-        class_weight="balanced_subsample",
-        n_jobs=-1,
+    model = lgb.LGBMClassifier(
+        n_estimators=150,
+        max_depth=8,
+        num_leaves=31,
+        learning_rate=0.08,
+        class_weight="balanced",
+        subsample=0.8,
+        colsample_bytree=0.8,
         random_state=RANDOM_STATE,
+        n_jobs=-1,
+        verbose=-1,
     )
-    print("Training RandomForestClassifier ...")
+    print("Training LightGBM GBDT Classifier ...")
     model.fit(X_train, y_train)
     print("Scoring held-out test set ...")
     prob = model.predict_proba(X_test)[:, 1]
 
+    # Calculate normalized feature importances
+    raw_importances = model.feature_importances_
+    total_imp = max(float(raw_importances.sum()), 1.0)
+    feat_imp = {col: round(float(imp / total_imp), 4) for col, imp in zip(feature_columns, raw_importances)}
+    sorted_imp = sorted(feat_imp.items(), key=lambda x: x[1], reverse=True)
+
     # Report multiple thresholds to expose the precision/recall trade-off.
     metrics = {
         "dataset": "PaySim (Synthetic Mode)" if (use_synthetic or not data_path.exists()) else "PaySim Full Dataset",
+        "model_architecture": "LightGBM Gradient Boosted Decision Trees (GBDT)",
         "rows_loaded": int(len(data)),
         "fraud_prevalence_test": float(y_test.mean()),
         "training_rows": int(len(train_small)),
@@ -227,20 +239,23 @@ def main() -> None:
         "roc_auc": float(roc_auc_score(y_test, prob)),
         "threshold_reports": [report_at_threshold(y_test, prob, t) for t in (0.5, 0.25, 0.10)],
         "features": feature_columns,
-        "warning": "Synthetic-data prototype. Thresholds are not calibrated for real-world deployment.",
+        "feature_importances": dict(sorted_imp),
+        "warning": "Prototype model. Thresholds are calibrated for demonstration.",
         "elapsed_seconds": round(time.time() - started, 2),
     }
     bundle = {
         "model": model,
         "feature_columns": feature_columns,
-        "model_version": "fraudpulse-baseline-0.1",
-        "input_fields": ["step", "type", "amount"],
+        "model_version": "fraudpulse-lightgbm-1.0",
+        "model_type": "LightGBM Gradient Boosted Decision Tree (GBDT)",
+        "input_fields": ["step", "type", "amount", "oldbalanceOrg", "nameDest"],
         "types_supported": PAY_SIM_TYPES,
+        "feature_importances": dict(sorted_imp),
     }
     joblib.dump(bundle, MODEL_PATH)
     METRICS_PATH.write_text(json.dumps(metrics, indent=2))
 
-    print("\n=== HELD-OUT TEST RESULTS ===")
+    print("\n=== HELD-OUT TEST RESULTS (LIGHTGBM GBDT) ===")
     print(f"PR-AUC / Average precision: {metrics['average_precision_pr_auc']:.4f}")
     print(f"ROC-AUC: {metrics['roc_auc']:.4f}")
     for row in metrics["threshold_reports"]:
@@ -251,6 +266,9 @@ def main() -> None:
             f"missed_fraud={row['false_negatives']:,} "
             f"FPR={row['false_positive_rate']:.4%}"
         )
+    print("\nTop 5 Feature Importances:")
+    for feat, imp in sorted_imp[:5]:
+        print(f"  • {feat}: {imp * 100:.1f}%")
     print(f"\nSaved trained model: {MODEL_PATH}")
     print(f"Saved metrics: {METRICS_PATH}")
 

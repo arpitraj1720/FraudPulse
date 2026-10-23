@@ -126,12 +126,19 @@ Once the backend is launched (`python -m uvicorn backend.main:app --port 8000`):
 
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
-| `GET` | `/api/health` | Service health, model status, and Gemma API availability. |
-| `GET` | `/api/metrics` | Held-out model metrics and threshold trade-offs. |
-| `POST` | `/api/score` | Evaluates a single transaction through ML + Sequence Engine. |
-| `POST` | `/api/investigate` | Triggers Gemma AI investigation on an escalated transaction. |
-| `GET` | `/api/scenarios` | Pre-built test scenarios (Micro-probing, Large Normal Transfer, Burst). |
-| `POST` | `/api/scenarios/replay/{id}` | Replays scenario sequence step-by-step to show live detection. |
+| `GET` | `/api/health` | Service health, model status, active accounts, and graph node/edge counts. |
+| `GET` | `/api/metrics` | Model metrics, ROC-AUC, PR-AUC, Brier score, and latency benchmarks. |
+| `GET` | `/api/graph/stats` | In-memory directed graph topology metrics (nodes, edges, flagged entities). |
+| `POST` | `/api/score` | Evaluates a single transaction through ML + Sequence + Graph Engine with Tree SHAP. |
+| `POST` | `/api/investigate` | Triggers Gemma 27B AI Copilot investigation on an escalated transaction. |
+| `GET` | `/api/scenarios` | Pre-built test scenarios (Micro-probing, High-Value Normal, Burst, PaySim Fraud, Mule Loop). |
+| `POST` | `/api/scenarios/replay/{id}` | Replays scenario sequence step-by-step to show live multi-tier detection (< 3ms). |
+| `GET` | `/api/stream/live` | **Server-Sent Events (SSE)** continuous push of scored transactions & live metrics. |
+| `GET` | `/api/stream/stats` | Real-time stream telemetry: Throughput (TPS), False Positives Prevented, Precision/Recall. |
+| `GET` | `/api/stream/batch?size=5` | Pulls next batch of scored stream transactions (polling fallback for SSE). |
+| `POST` | `/api/stream/toggle` | Starts or pauses background stream generator (`{"active": true, "tps": 10}`). |
+| `POST` | `/api/stream/step` | Advances the stream simulator by N transactions for interactive stepping. |
+| `POST` | `/api/stream/reset` | Resets stream counters, ground-truth confusion matrix, and sequence window. |
 
 ---
 

@@ -1,0 +1,1370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FraudPulse — Live Transaction Radar & High-Throughput Stream</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Michroma&family=Syncopate:wght@400;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css">
+  <style>
+    /* ==========================================================================
+       DEDICATED STREAM RADAR STYLES (MATCHING LAB THEME & GEOMETRY)
+       ========================================================================== */
+    .stream-body {
+      background-color: #06070a;
+      color: #f8fafc;
+      font-family: var(--font-body);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .stream-navbar {
+      background: rgba(10, 13, 18, 0.95);
+      border-bottom: 1px solid #1e2430;
+      padding: 14px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(12px);
+    }
+
+    .stream-brand-group {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .stream-brand-title {
+      font-family: var(--font-tech);
+      font-size: 15px;
+      letter-spacing: 0.12em;
+      color: #f8fafc;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .stream-tag {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--color-green);
+      background: var(--color-green-bg);
+      border: 1px solid var(--color-green-border);
+      padding: 2px 7px;
+      border-radius: 2px;
+      letter-spacing: 0.05em;
+    }
+
+    .stream-controls-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .tps-btn-group {
+      display: flex;
+      background: #0e121a;
+      border: 1px solid #232a3b;
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .tps-btn {
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      padding: 6px 12px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .tps-btn:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .tps-btn.active {
+      background: #1e2638;
+      color: var(--color-green);
+      font-weight: 700;
+      box-shadow: inset 0 -2px 0 var(--color-green);
+    }
+
+    .btn-toggle-stream {
+      background: #121824;
+      border: 1px solid #2e3a50;
+      color: #f8fafc;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 7px 15px;
+      border-radius: 3px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      transition: all 0.2s ease;
+    }
+
+    .btn-toggle-stream:hover {
+      border-color: #475569;
+      background: #182233;
+    }
+
+    .btn-toggle-stream.active {
+      background: rgba(16, 185, 129, 0.15);
+      border-color: var(--color-green);
+      color: #34d399;
+    }
+
+    .btn-toggle-stream.paused {
+      background: rgba(239, 68, 68, 0.12);
+      border-color: var(--color-red);
+      color: #f87171;
+    }
+
+    /* Live HUD Metrics Grid */
+    .stream-hud-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 12px;
+      padding: 16px 28px 12px 28px;
+      max-width: 1720px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    .hud-card {
+      background: rgba(12, 16, 23, 0.9);
+      border: 1px solid #1c2331;
+      border-radius: 3px;
+      padding: 14px 16px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hud-card::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background: #232c3d;
+    }
+
+    .hud-card.green::after { background: var(--color-green); }
+    .hud-card.red::after { background: var(--color-red); }
+    .hud-card.blue::after { background: #38bdf8; }
+
+    .hud-card-label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .hud-card-value {
+      font-family: var(--font-tech);
+      font-size: 22px;
+      font-weight: 700;
+      color: #f8fafc;
+      letter-spacing: 0.03em;
+    }
+
+    .hud-card-sub {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: #64748b;
+      margin-top: 4px;
+    }
+
+    /* Coordinated Attack Injection Bar */
+    .injection-bar {
+      max-width: 1720px;
+      width: 100%;
+      margin: 0 auto 14px auto;
+      padding: 0 28px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .injection-label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: #94a3b8;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding-right: 6px;
+    }
+
+    .btn-inject {
+      background: #0f141f;
+      border: 1px solid #232c3f;
+      color: #cbd5e1;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      padding: 6px 12px;
+      border-radius: 3px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+
+    .btn-inject:hover {
+      border-color: #475569;
+      color: #fff;
+      background: #161e2e;
+    }
+
+    .btn-inject.red:hover {
+      border-color: var(--color-red);
+      color: #fca5a5;
+      background: rgba(239, 68, 68, 0.1);
+    }
+
+    .btn-inject.green:hover {
+      border-color: var(--color-green);
+      color: #6ee7b7;
+      background: rgba(16, 185, 129, 0.1);
+    }
+
+    /* Live Intercept Alert Banner */
+    .intercept-banner {
+      max-width: 1720px;
+      width: 100%;
+      margin: 0 auto 14px auto;
+      padding: 10px 20px;
+      background: rgba(239, 68, 68, 0.08);
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      border-left: 4px solid var(--color-red);
+      border-radius: 2px;
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      animation: alertPulse 2s infinite ease-in-out;
+    }
+
+    .intercept-banner.show {
+      display: flex;
+    }
+
+    @keyframes alertPulse {
+      0%, 100% { border-color: rgba(239, 68, 68, 0.4); }
+      50% { border-color: rgba(239, 68, 68, 0.9); box-shadow: 0 0 12px rgba(239, 68, 68, 0.25); }
+    }
+
+    .intercept-title {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--color-red);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .intercept-desc {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: #fca5a5;
+    }
+
+    /* Main Dual-Column Workspace */
+    .stream-workspace {
+      flex: 1;
+      max-width: 1720px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 0 28px 32px 28px;
+      display: grid;
+      grid-template-columns: 1fr 420px;
+      gap: 16px;
+      overflow: hidden;
+    }
+
+    /* Left Table Console */
+    .stream-feed-panel {
+      background: rgba(11, 14, 20, 0.85);
+      border: 1px solid #1d2433;
+      border-radius: 3px;
+      display: flex;
+      flex-direction: column;
+      height: calc(100vh - 270px);
+      min-height: 480px;
+      overflow: hidden;
+    }
+
+    .feed-header {
+      padding: 12px 16px;
+      background: #0e1219;
+      border-bottom: 1px solid #1e2535;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .feed-title {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: #cbd5e1;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .feed-filter-pills {
+      display: flex;
+      gap: 6px;
+    }
+
+    .filter-pill {
+      background: #141a26;
+      border: 1px solid #263145;
+      color: #94a3b8;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      padding: 3px 8px;
+      border-radius: 2px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .filter-pill:hover, .filter-pill.active {
+      color: #f8fafc;
+      border-color: #475569;
+      background: #1e2638;
+    }
+
+    .filter-pill.red.active {
+      border-color: var(--color-red);
+      color: var(--color-red);
+      background: var(--color-red-bg);
+    }
+
+    .filter-pill.green.active {
+      border-color: var(--color-green);
+      color: var(--color-green);
+      background: var(--color-green-bg);
+    }
+
+    .feed-table-container {
+      flex: 1;
+      overflow-y: auto;
+      font-family: var(--font-mono);
+      font-size: 11px;
+    }
+
+    .stream-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    .stream-table th {
+      position: sticky;
+      top: 0;
+      background: #090c12;
+      border-bottom: 1px solid #1f2738;
+      color: #64748b;
+      font-size: 9px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 8px 12px;
+      z-index: 2;
+    }
+
+    .stream-table tr {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+      cursor: pointer;
+      transition: background 0.12s ease;
+    }
+
+    .stream-table tr:hover {
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .stream-table tr.selected {
+      background: rgba(16, 185, 129, 0.07);
+      border-left: 2px solid var(--color-green);
+    }
+
+    .stream-table tr.flagged {
+      background: rgba(239, 68, 68, 0.05);
+    }
+
+    .stream-table tr.flagged:hover {
+      background: rgba(239, 68, 68, 0.1);
+    }
+
+    .stream-table tr.flagged.selected {
+      border-left: 2px solid var(--color-red);
+      background: rgba(239, 68, 68, 0.12);
+    }
+
+    .stream-table td {
+      padding: 9px 12px;
+      white-space: nowrap;
+    }
+
+    .table-badge {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 2px;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+    }
+
+    .table-badge.green {
+      color: #34d399;
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .table-badge.red {
+      color: #f87171;
+      background: rgba(239, 68, 68, 0.14);
+      border: 1px solid rgba(239, 68, 68, 0.4);
+    }
+
+    .table-badge.gray {
+      color: #94a3b8;
+      background: #171d2b;
+      border: 1px solid #2a3449;
+    }
+
+    .shap-tag {
+      font-size: 9px;
+      padding: 1px 5px;
+      border-radius: 2px;
+      background: #131924;
+      border: 1px solid #252f44;
+      color: #cbd5e1;
+    }
+
+    .shap-tag.risk {
+      color: #fca5a5;
+      border-color: rgba(239, 68, 68, 0.35);
+    }
+
+    .shap-tag.safe {
+      color: #6ee7b7;
+      border-color: rgba(16, 185, 129, 0.35);
+    }
+
+    /* Right Inspector Panel */
+    .stream-inspector-panel {
+      background: rgba(11, 14, 20, 0.95);
+      border: 1px solid #1d2433;
+      border-radius: 3px;
+      display: flex;
+      flex-direction: column;
+      height: calc(100vh - 270px);
+      min-height: 480px;
+      overflow-y: auto;
+      padding: 18px;
+    }
+
+    .inspector-header {
+      border-bottom: 1px solid #1e2637;
+      padding-bottom: 12px;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .inspector-title {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      color: #cbd5e1;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .inspector-block {
+      background: #090c12;
+      border: 1px solid #1c2331;
+      border-radius: 2px;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+
+    .inspector-block-title {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 8px;
+    }
+
+    .data-row {
+      display: flex;
+      justify-content: space-between;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      margin-bottom: 5px;
+    }
+
+    .data-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .data-label { color: #94a3b8; }
+    .data-val { color: #f8fafc; font-weight: 600; }
+
+    /* Tree SHAP Waterfall Bar */
+    .shap-bar-item {
+      margin-bottom: 8px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+    }
+
+    .shap-bar-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 3px;
+    }
+
+    .shap-track {
+      height: 5px;
+      background: #141924;
+      border-radius: 1px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .shap-fill {
+      height: 100%;
+      border-radius: 1px;
+    }
+
+    .shap-fill.risk { background: var(--color-red); }
+    .shap-fill.safe { background: var(--color-green); }
+
+    .btn-ai-investigate {
+      background: #1a2233;
+      border: 1px solid #334155;
+      color: #f8fafc;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 10px;
+      border-radius: 3px;
+      cursor: pointer;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+      margin-top: auto;
+    }
+
+    .btn-ai-investigate:hover {
+      background: #243048;
+      border-color: #475569;
+    }
+
+    /* Modal for Gemma Output */
+    .gemma-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(8px);
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .gemma-modal.show {
+      display: flex;
+    }
+
+    .gemma-modal-content {
+      background: #0a0d14;
+      border: 1px solid #2d3748;
+      border-radius: 4px;
+      max-width: 680px;
+      width: 100%;
+      padding: 24px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7);
+    }
+  </style>
+</head>
+<body class="stream-body">
+
+  <!-- Top Navigation & Controls -->
+  <header class="stream-navbar">
+    <div class="stream-brand-group">
+      <a href="/" style="text-decoration:none;display:flex;align-items:center;gap:10px;">
+        <span class="stream-brand-title">FRAUDPULSE // HIGH-THROUGHPUT TRANSACTION RADAR</span>
+      </a>
+      <span class="stream-tag" id="stream-status-pill">● SSE STREAM ACTIVE</span>
+    </div>
+
+    <div class="stream-controls-group">
+      <!-- Target TPS Speed Selector -->
+      <div class="tps-btn-group">
+        <button class="tps-btn" data-tps="1">1 TPS</button>
+        <button class="tps-btn" data-tps="5">5 TPS</button>
+        <button class="tps-btn active" data-tps="10">10 TPS</button>
+        <button class="tps-btn" data-tps="20">20 TPS</button>
+      </div>
+
+      <!-- Play / Pause Button -->
+      <button class="btn-toggle-stream active" id="btn-toggle-stream">
+        <span id="toggle-stream-icon">❚❚</span>
+        <span id="toggle-stream-text">PAUSE RADAR</span>
+      </button>
+
+      <!-- Step Button -->
+      <button class="btn-toggle-stream" id="btn-step-stream" title="Execute single transaction step">
+        <span>▶|</span>
+        <span>STEP +1</span>
+      </button>
+
+      <!-- Reset Button -->
+      <button class="btn-toggle-stream" id="btn-reset-stream" style="color:#ef4444;" title="Reset live stream counters">
+        <span>↺</span>
+        <span>RESET</span>
+      </button>
+
+      <!-- Back to Main Lab Link -->
+      <a href="/" class="btn-toggle-stream" style="text-decoration:none;border-color:#3b82f6;color:#60a5fa;">
+        <span>LAB DASHBOARD &rarr;</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- Top Telemetry HUD Grid -->
+  <section class="stream-hud-grid">
+    <div class="hud-card green">
+      <div class="hud-card-label">
+        <span>Throughput</span>
+        <span style="color:var(--color-green);">LIVE</span>
+      </div>
+      <div class="hud-card-value" id="hud-tps">10.0 TPS</div>
+      <div class="hud-card-sub" id="hud-latency">Avg Latency: 1.42ms (Tier 1 SLA)</div>
+    </div>
+
+    <div class="hud-card">
+      <div class="hud-card-label">Total Processed</div>
+      <div class="hud-card-value" id="hud-total">0 TX</div>
+      <div class="hud-card-sub">100% Kaggle PaySim Log</div>
+    </div>
+
+    <div class="hud-card green">
+      <div class="hud-card-label">Auto-Cleared (Safe)</div>
+      <div class="hud-card-value" id="hud-cleared" style="color:var(--color-green);">0</div>
+      <div class="hud-card-sub" id="hud-cleared-pct">Frictionless Permit (&lt;2ms)</div>
+    </div>
+
+    <div class="hud-card red">
+      <div class="hud-card-label">Flagged / Held</div>
+      <div class="hud-card-value" id="hud-flagged" style="color:var(--color-red);">0</div>
+      <div class="hud-card-sub" id="hud-flagged-pct">Risk Score &ge; 0.50</div>
+    </div>
+
+    <div class="hud-card blue">
+      <div class="hud-card-label">False Positives Prevented</div>
+      <div class="hud-card-value" id="hud-fp-prevented" style="color:#38bdf8;">0</div>
+      <div class="hud-card-sub">Sequence Trust Saved User</div>
+    </div>
+
+    <div class="hud-card">
+      <div class="hud-card-label">Live Accuracy (Kaggle GT)</div>
+      <div class="hud-card-value" id="hud-accuracy" style="font-size:18px;">P: 100% | R: 100%</div>
+      <div class="hud-card-sub" id="hud-f1">F1 Score: 1.000</div>
+    </div>
+  </section>
+
+  <!-- Coordinated Attack Injection Controls -->
+  <section class="injection-bar">
+    <span class="injection-label">Inject Coordinated Attack Burst:</span>
+    <button class="btn-inject red" id="btn-inject-micro">
+      <span>⚡</span>
+      <span>Micro-Probing Drain</span>
+    </button>
+    <button class="btn-inject red" id="btn-inject-mule">
+      <span>⚡</span>
+      <span>Mule Fan-In Hub</span>
+    </button>
+    <button class="btn-inject red" id="btn-inject-wash">
+      <span>⚡</span>
+      <span>Directed Wash Loop</span>
+    </button>
+    <button class="btn-inject green" id="btn-inject-normal">
+      <span>🛡️</span>
+      <span>Verified Commercial Batch</span>
+    </button>
+  </section>
+
+  <!-- Live Intercept Banner (Shown on critical flags) -->
+  <div class="intercept-banner" id="intercept-banner">
+    <div>
+      <div class="intercept-title">
+        <span style="font-size:14px;">⚠️</span>
+        <span id="intercept-heading">HIGH-SEVERITY ATTACK PATTERN INTERCEPTED</span>
+      </div>
+      <div class="intercept-desc" id="intercept-details">
+        Account ACC-ATTACK-812 drained $42,500.00 following nominal probing sequence. Blocked in 1.2ms.
+      </div>
+    </div>
+    <button class="btn-inject red" id="btn-banner-inspect" style="font-size:10px;">INSPECT TELEMETRY &rarr;</button>
+  </div>
+
+  <!-- Main Dual-Pane Console -->
+  <main class="stream-workspace">
+    <!-- Left Feed Table Panel -->
+    <section class="stream-feed-panel">
+      <div class="feed-header">
+        <div class="feed-title">
+          <span>REAL-TIME TRANSACTION FLOW RADAR</span>
+          <span style="font-size:10px;color:#64748b;" id="table-row-count">[0 loaded]</span>
+        </div>
+        <div class="feed-filter-pills">
+          <button class="filter-pill active" data-filter="all">ALL</button>
+          <button class="filter-pill red" data-filter="flagged">FLAGGED ONLY</button>
+          <button class="filter-pill green" data-filter="cleared">CLEARED ONLY</button>
+        </div>
+      </div>
+
+      <div class="feed-table-container">
+        <table class="stream-table">
+          <thead>
+            <tr>
+              <th>TIME / ID</th>
+              <th>ORIGINATOR</th>
+              <th>TYPE</th>
+              <th>AMOUNT</th>
+              <th>RECIPIENT</th>
+              <th>ML RISK</th>
+              <th>FINAL RISK</th>
+              <th>POLICY</th>
+              <th>TREE SHAP DRIVER</th>
+              <th>LATENCY</th>
+            </tr>
+          </thead>
+          <tbody id="stream-tbody">
+            <!-- Dynamically populated via SSE / Batch API -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Right Inspector Panel -->
+    <aside class="stream-inspector-panel" id="stream-inspector">
+      <div class="inspector-header">
+        <span class="inspector-title">DEEP TRANSACTION TELEMETRY</span>
+        <span class="table-badge green" id="insp-badge">LIVE SELECTION</span>
+      </div>
+
+      <!-- Core Details Block -->
+      <div class="inspector-block">
+        <div class="inspector-block-title">Transaction Identity</div>
+        <div class="data-row">
+          <span class="data-label">Transaction ID</span>
+          <span class="data-val" id="insp-id">tx_--</span>
+        </div>
+        <div class="data-row">
+          <span class="data-label">Originator Account</span>
+          <span class="data-val" id="insp-sender">--</span>
+        </div>
+        <div class="data-row">
+          <span class="data-label">Destination Entity</span>
+          <span class="data-val" id="insp-recipient">--</span>
+        </div>
+        <div class="data-row">
+          <span class="data-label">Transfer Type</span>
+          <span class="data-val" id="insp-type">--</span>
+        </div>
+        <div class="data-row">
+          <span class="data-label">Amount</span>
+          <span class="data-val" id="insp-amount" style="color:#f8fafc;font-size:13px;">$0.00</span>
+        </div>
+      </div>
+
+      <!-- Risk Decomposition Block -->
+      <div class="inspector-block">
+        <div class="inspector-block-title">Multi-Tier Risk Decomposition</div>
+        <div class="data-row">
+          <span class="data-label">Point ML Risk (GBDT)</span>
+          <span class="data-val" id="insp-ml-risk">0.00</span>
+        </div>
+        <div class="data-row">
+          <span class="data-label">Sequence Behavioral Risk</span>
+          <span class="data-val" id="insp-seq-risk">0.00</span>
+        </div>
+        <div class="data-row">
+          <span class="data-label">Hybrid Blended Score</span>
+          <span class="data-val" id="insp-final-risk" style="color:var(--color-green);">0.00</span>
+        </div>
+        <div class="data-row">
+          <span class="data-label">Policy Decision</span>
+          <span class="data-val" id="insp-decision">AUTO_APPROVE</span>
+        </div>
+        <div class="data-row">
+          <span class="data-label">Gateway SLA Latency</span>
+          <span class="data-val" id="insp-latency">0.00ms</span>
+        </div>
+      </div>
+
+      <!-- Tree SHAP Waterfall Block -->
+      <div class="inspector-block">
+        <div class="inspector-block-title">Native Tree SHAP Feature Attributions</div>
+        <div id="insp-shap-container">
+          <div style="font-family:var(--font-mono);font-size:10px;color:#64748b;">Awaiting transaction selection...</div>
+        </div>
+      </div>
+
+      <!-- Graph Network Context Block -->
+      <div class="inspector-block">
+        <div class="inspector-block-title">In-Memory Graph Topology</div>
+        <div class="data-row">
+          <span class="data-label">Recipient In-Degree</span>
+          <span class="data-val" id="insp-graph-indegree">1 Originator</span>
+        </div>
+        <div class="data-row">
+          <span class="data-label">Mule Fan-In Hub</span>
+          <span class="data-val" id="insp-graph-mule">False</span>
+        </div>
+        <div class="data-row">
+          <span class="data-label">Circular Wash Loop</span>
+          <span class="data-val" id="insp-graph-cycle">False</span>
+        </div>
+      </div>
+
+      <!-- Behavioral Sequence Signals -->
+      <div class="inspector-block">
+        <div class="inspector-block-title">Behavioral Sequence Signals</div>
+        <ul id="insp-signals-list" style="list-style:none;padding:0;margin:0;font-family:var(--font-mono);font-size:10px;color:#cbd5e1;">
+          <li style="color:#64748b;">Nominal transaction flow.</li>
+        </ul>
+      </div>
+
+      <!-- Gemma Copilot Investigation Button -->
+      <button class="btn-ai-investigate" id="btn-inspect-gemma">
+        <span>✨</span>
+        <span>INVESTIGATE WITH GEMMA 27B</span>
+      </button>
+    </aside>
+  </main>
+
+  <!-- Gemma AI Investigation Modal -->
+  <div class="gemma-modal" id="gemma-modal">
+    <div class="gemma-modal-content">
+      <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #1e2637;padding-bottom:12px;margin-bottom:14px;">
+        <span style="font-family:var(--font-tech);font-size:13px;color:#f8fafc;letter-spacing:0.08em;">GEMMA 27B AUTONOMOUS SAR BRIEF</span>
+        <button id="btn-close-modal" style="background:transparent;border:none;color:#94a3b8;font-size:18px;cursor:pointer;">✕</button>
+      </div>
+
+      <div id="modal-gemma-body" style="font-family:var(--font-mono);font-size:11px;line-height:1.6;color:#e2e8f0;max-height:450px;overflow-y:auto;">
+        <div style="color:#94a3b8;text-align:center;padding:24px;">Generating deep multi-factor causal brief...</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // =========================================================================
+    // REAL-TIME TRANSACTION STREAM RADAR FRONTEND CONTROLLER
+    // =========================================================================
+    let eventSource = null;
+    let isStreamActive = true;
+    let currentTps = 10;
+    let currentFilter = 'all';
+    let transactionsHistory = [];
+    let selectedTx = null;
+
+    // DOM References
+    const tbody = document.getElementById('stream-tbody');
+    const tableRowCount = document.getElementById('table-row-count');
+    const toggleBtn = document.getElementById('btn-toggle-stream');
+    const toggleIcon = document.getElementById('toggle-stream-icon');
+    const toggleText = document.getElementById('toggle-stream-text');
+    const statusPill = document.getElementById('stream-status-pill');
+    const banner = document.getElementById('intercept-banner');
+
+    // HUD Elements
+    const hudTps = document.getElementById('hud-tps');
+    const hudLatency = document.getElementById('hud-latency');
+    const hudTotal = document.getElementById('hud-total');
+    const hudCleared = document.getElementById('hud-cleared');
+    const hudClearedPct = document.getElementById('hud-cleared-pct');
+    const hudFlagged = document.getElementById('hud-flagged');
+    const hudFlaggedPct = document.getElementById('hud-flagged-pct');
+    const hudFp = document.getElementById('hud-fp-prevented');
+    const hudAccuracy = document.getElementById('hud-accuracy');
+    const hudF1 = document.getElementById('hud-f1');
+
+    // Initialize Stream Connection
+    function initEventSource() {
+      if (eventSource) {
+        eventSource.close();
+      }
+
+      statusPill.textContent = '● SSE CONNECTING...';
+      statusPill.style.color = '#38bdf8';
+      statusPill.style.borderColor = 'rgba(56, 189, 248, 0.4)';
+
+      eventSource = new EventSource('/api/stream/live');
+
+      eventSource.onopen = () => {
+        statusPill.textContent = `● SSE STREAM ACTIVE (${currentTps} TPS)`;
+        statusPill.style.color = '#10b981';
+        statusPill.style.borderColor = 'rgba(16, 185, 129, 0.4)';
+        toggleBtn.classList.add('active');
+        toggleBtn.classList.remove('paused');
+        toggleIcon.textContent = '❚❚';
+        toggleText.textContent = 'PAUSE RADAR';
+      };
+
+      eventSource.onmessage = (e) => {
+        try {
+          const data = JSON.parse(e.data);
+          if (data.transaction) {
+            handleNewTransaction(data.transaction);
+          }
+          if (data.stats) {
+            updateHudStats(data.stats);
+          }
+        } catch (err) {
+          console.error("Failed to parse SSE payload", err);
+        }
+      };
+
+      eventSource.onerror = (err) => {
+        console.warn("SSE connection interrupted, retrying in 2s...", err);
+        statusPill.textContent = '○ SSE RECONNECTING';
+        statusPill.style.color = '#f87171';
+        statusPill.style.borderColor = 'rgba(239, 68, 68, 0.4)';
+      };
+    }
+
+    function handleNewTransaction(tx) {
+      transactionsHistory.unshift(tx);
+      if (transactionsHistory.length > 250) {
+        transactionsHistory.pop();
+      }
+
+      // If nothing selected yet, or if this tx is flagged, auto-inspect it
+      if (!selectedTx || tx.final_risk >= 0.50) {
+        renderInspector(tx);
+      }
+
+      // Check if attack or critical risk
+      if (tx.final_risk >= 0.50) {
+        showInterceptAlert(tx);
+      }
+
+      // Add to table
+      renderTableRow(tx);
+      tableRowCount.textContent = `[${transactionsHistory.length} active]`;
+    }
+
+    function renderTableRow(tx) {
+      // Check filter
+      if (currentFilter === 'flagged' && tx.final_risk < 0.50) return;
+      if (currentFilter === 'cleared' && tx.final_risk >= 0.50) return;
+
+      const tr = document.createElement('tr');
+      tr.id = `row-${tx.id}`;
+      if (tx.final_risk >= 0.50) {
+        tr.classList.add('flagged');
+      }
+      if (selectedTx && selectedTx.id === tx.id) {
+        tr.classList.add('selected');
+      }
+
+      const isFlagged = tx.final_risk >= 0.50;
+      const policyClass = isFlagged ? 'red' : 'green';
+      const timeStr = new Date(tx.timestamp * 1000).toLocaleTimeString();
+
+      // Top SHAP
+      let shapHtml = '--';
+      if (tx.tree_shap_top && tx.tree_shap_top.length > 0) {
+        const top = tx.tree_shap_top[0];
+        const isRisk = top.impact === '+RISK';
+        shapHtml = `<span class="shap-tag ${isRisk ? 'risk' : 'safe'}">${top.feature} (${top.shap_value > 0 ? '+' : ''}${top.shap_value})</span>`;
+      }
+
+      tr.innerHTML = `
+        <td style="color:#94a3b8;">${timeStr} <span style="color:#64748b;font-size:9px;">#${tx.id}</span></td>
+        <td style="font-weight:600;">${tx.raw.account_id}</td>
+        <td><span class="table-badge gray">${tx.raw.type}</span></td>
+        <td style="color:#f8fafc;font-weight:700;">$${Number(tx.raw.amount).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+        <td style="color:#cbd5e1;">${tx.raw.recipient}</td>
+        <td style="color:${tx.ml_risk >= 0.5 ? '#f87171' : '#94a3b8'};">${Number(tx.ml_risk).toFixed(3)}</td>
+        <td style="color:${tx.final_risk >= 0.5 ? '#ef4444' : '#10b981'};font-weight:700;">${Number(tx.final_risk).toFixed(3)}</td>
+        <td><span class="table-badge ${policyClass}">${tx.policy_decision}</span></td>
+        <td>${shapHtml}</td>
+        <td style="color:#94a3b8;font-size:10px;">${tx.latency_ms}ms</td>
+      `;
+
+      tr.addEventListener('click', () => {
+        document.querySelectorAll('.stream-table tr').forEach(r => r.classList.remove('selected'));
+        tr.classList.add('selected');
+        renderInspector(tx);
+      });
+
+      tbody.insertBefore(tr, tbody.firstChild);
+
+      // Keep table DOM bounded to 150 rows max
+      while (tbody.children.length > 150) {
+        tbody.removeChild(tbody.lastChild);
+      }
+    }
+
+    function renderInspector(tx) {
+      selectedTx = tx;
+      document.getElementById('insp-id').textContent = tx.id;
+      document.getElementById('insp-sender').textContent = tx.raw.account_id;
+      document.getElementById('insp-recipient').textContent = tx.raw.recipient;
+      document.getElementById('insp-type').textContent = tx.raw.type;
+      document.getElementById('insp-amount').textContent = `$${Number(tx.raw.amount).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+
+      document.getElementById('insp-ml-risk').textContent = Number(tx.ml_risk).toFixed(4);
+      document.getElementById('insp-seq-risk').textContent = Number(tx.seq_risk).toFixed(4);
+      const finalRiskEl = document.getElementById('insp-final-risk');
+      finalRiskEl.textContent = Number(tx.final_risk).toFixed(4);
+      finalRiskEl.style.color = tx.final_risk >= 0.50 ? 'var(--color-red)' : 'var(--color-green)';
+
+      const decisionEl = document.getElementById('insp-decision');
+      decisionEl.textContent = tx.policy_decision;
+      decisionEl.style.color = tx.final_risk >= 0.50 ? 'var(--color-red)' : 'var(--color-green)';
+
+      document.getElementById('insp-latency').textContent = `${tx.latency_ms}ms`;
+
+      const badge = document.getElementById('insp-badge');
+      badge.textContent = tx.policy_decision;
+      badge.className = `table-badge ${tx.final_risk >= 0.50 ? 'red' : 'green'}`;
+
+      // Tree SHAP Waterfall
+      const shapContainer = document.getElementById('insp-shap-container');
+      shapContainer.innerHTML = '';
+      if (tx.tree_shap_top && tx.tree_shap_top.length > 0) {
+        tx.tree_shap_top.forEach(item => {
+          const isRisk = item.impact === '+RISK';
+          const absVal = Math.min(100, Math.abs(item.shap_value) * 12);
+          const barDiv = document.createElement('div');
+          barDiv.className = 'shap-bar-item';
+          barDiv.innerHTML = `
+            <div class="shap-bar-header">
+              <span style="color:#cbd5e1;">${item.feature}</span>
+              <span style="color:${isRisk ? '#f87171' : '#34d399'};font-weight:700;">${item.shap_value > 0 ? '+' : ''}${item.shap_value} (${item.impact})</span>
+            </div>
+            <div class="shap-track">
+              <div class="shap-fill ${isRisk ? 'risk' : 'safe'}" style="width: ${absVal}%;"></div>
+            </div>
+          `;
+          shapContainer.appendChild(barDiv);
+        });
+      } else {
+        shapContainer.innerHTML = '<div style="font-family:var(--font-mono);font-size:10px;color:#64748b;">Baseline distribution.</div>';
+      }
+
+      // Graph Network Context
+      const gs = tx.graph_summary || {};
+      document.getElementById('insp-graph-indegree').textContent = `${gs.in_degree || 1} Originators`;
+      document.getElementById('insp-graph-mule').textContent = gs.is_mule ? '⚠️ DETECTED' : 'Nominal';
+      document.getElementById('insp-graph-mule').style.color = gs.is_mule ? 'var(--color-red)' : '#f8fafc';
+      document.getElementById('insp-graph-cycle').textContent = gs.cycle ? '⚠️ CIRCULAR LOOP DETECTED' : 'Nominal';
+      document.getElementById('insp-graph-cycle').style.color = gs.cycle ? 'var(--color-red)' : '#f8fafc';
+
+      // Signals List
+      const signalsList = document.getElementById('insp-signals-list');
+      signalsList.innerHTML = '';
+      if (tx.signals && tx.signals.length > 0) {
+        tx.signals.forEach(s => {
+          const li = document.createElement('li');
+          li.style.color = '#fca5a5';
+          li.style.marginBottom = '4px';
+          li.innerHTML = `⚠️ ${s}`;
+          signalsList.appendChild(li);
+        });
+      } else {
+        signalsList.innerHTML = '<li style="color:#64748b;">Nominal transaction flow without tripwires.</li>';
+      }
+    }
+
+    function updateHudStats(stats) {
+      hudTps.textContent = `${Number(stats.current_tps).toFixed(1)} TPS`;
+      hudLatency.textContent = `Avg Latency: ${stats.avg_latency_ms}ms (Tier 1 SLA)`;
+      hudTotal.textContent = `${Number(stats.total_processed).toLocaleString()} TX`;
+
+      hudCleared.textContent = Number(stats.total_cleared).toLocaleString();
+      const clearedPct = stats.total_processed > 0 ? ((stats.total_cleared / stats.total_processed) * 100).toFixed(1) : '100.0';
+      hudClearedPct.textContent = `${clearedPct}% Auto-Cleared (Frictionless)`;
+
+      hudFlagged.textContent = Number(stats.total_flagged).toLocaleString();
+      const flaggedPct = stats.total_processed > 0 ? ((stats.total_flagged / stats.total_processed) * 100).toFixed(1) : '0.0';
+      hudFlaggedPct.textContent = `${flaggedPct}% Flagged (Risk &ge; 0.50)`;
+
+      hudFp.textContent = `${stats.false_positives_prevented} Prevented`;
+
+      const gt = stats.ground_truth_metrics || {};
+      const prec = (gt.precision * 100).toFixed(1);
+      const rec = (gt.recall * 100).toFixed(1);
+      hudAccuracy.textContent = `P: ${prec}% | R: ${rec}%`;
+      hudF1.textContent = `F1 Score: ${Number(gt.f1_score).toFixed(3)}`;
+    }
+
+    function showInterceptAlert(tx) {
+      banner.classList.add('show');
+      const heading = document.getElementById('intercept-heading');
+      const details = document.getElementById('intercept-details');
+
+      const isMicro = tx.signals && tx.signals.some(s => s.toLowerCase().includes('probing'));
+      const isMule = tx.graph_summary && tx.graph_summary.is_mule;
+      const isCycle = tx.graph_summary && tx.graph_summary.cycle;
+
+      if (isCycle) {
+        heading.textContent = 'CRITICAL INTERCEPT: CIRCULAR AML WASH LOOP';
+        details.textContent = `Transaction of $${Number(tx.raw.amount).toLocaleString()} closed a directed wash-trading loop. Risk: ${tx.final_risk}`;
+      } else if (isMule) {
+        heading.textContent = 'CRITICAL INTERCEPT: MULE FUNNEL HUB SPIKE';
+        details.textContent = `Destination ${tx.raw.recipient} received sudden simultaneous inflows from multiple originators.`;
+      } else if (isMicro) {
+        heading.textContent = 'CRITICAL INTERCEPT: MICRO-PROBING ATO BURST';
+        details.textContent = `Trial micro-transfers followed by sudden liquidation of $${Number(tx.raw.amount).toLocaleString()}. Intercepted in ${tx.latency_ms}ms.`;
+      } else {
+        heading.textContent = `CRITICAL INTERCEPT: HIGH RISK TRANSFER (${tx.policy_decision})`;
+        details.textContent = `${tx.raw.account_id} -> ${tx.raw.recipient} of $${Number(tx.raw.amount).toLocaleString()} (Risk: ${tx.final_risk}).`;
+      }
+    }
+
+    // Toggle Stream (Play / Pause)
+    toggleBtn.addEventListener('click', async () => {
+      isStreamActive = !isStreamActive;
+      try {
+        await fetch('/api/stream/toggle', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ active: isStreamActive, tps: currentTps })
+        });
+
+        if (isStreamActive) {
+          toggleBtn.classList.add('active');
+          toggleBtn.classList.remove('paused');
+          toggleIcon.textContent = '❚❚';
+          toggleText.textContent = 'PAUSE RADAR';
+          statusPill.textContent = `● SSE STREAM ACTIVE (${currentTps} TPS)`;
+        } else {
+          toggleBtn.classList.remove('active');
+          toggleBtn.classList.add('paused');
+          toggleIcon.textContent = '▶';
+          toggleText.textContent = 'RESUME RADAR';
+          statusPill.textContent = '❚❚ STREAM PAUSED';
+        }
+      } catch (err) {
+        console.error("Toggle failed", err);
+      }
+    });
+
+    // TPS Speed Selector
+    document.querySelectorAll('.tps-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        document.querySelectorAll('.tps-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentTps = Number(btn.getAttribute('data-tps'));
+        await fetch('/api/stream/toggle', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ tps: currentTps })
+        });
+        statusPill.textContent = `● SSE STREAM ACTIVE (${currentTps} TPS)`;
+      });
+    });
+
+    // Step Button
+    document.getElementById('btn-step-stream').addEventListener('click', async () => {
+      try {
+        const res = await fetch('/api/stream/step', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ count: 1 })
+        });
+        const data = await res.json();
+        if (data.items && data.items.length > 0) {
+          data.items.forEach(handleNewTransaction);
+        }
+      } catch (err) {
+        console.error("Step failed", err);
+      }
+    });
+
+    // Reset Button
+    document.getElementById('btn-reset-stream').addEventListener('click', async () => {
+      if (confirm("Reset real-time stream counters and sliding window history?")) {
+        try {
+          await fetch('/api/stream/reset', { method: 'POST' });
+          tbody.innerHTML = '';
+          transactionsHistory = [];
+          tableRowCount.textContent = '[0 loaded]';
+          banner.classList.remove('show');
+          selectedTx = null;
+        } catch (err) {
+          console.error("Reset failed", err);
+        }
+      }
+    });
+
+    // Attack Injections
+    document.getElementById('btn-inject-micro').addEventListener('click', () => injectAttack('micro_probing'));
+    document.getElementById('btn-inject-mule').addEventListener('click', () => injectAttack('mule_fan_in'));
+    document.getElementById('btn-inject-wash').addEventListener('click', () => injectAttack('wash_circle'));
+    document.getElementById('btn-inject-normal').addEventListener('click', () => injectAttack('random'));
+
+    async function injectAttack(type) {
+      try {
+        await fetch('/api/stream/inject', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ attack_type: type })
+        });
+      } catch (err) {
+        console.error("Injection failed", err);
+      }
+    }
+
+    // Filter Buttons
+    document.querySelectorAll('.filter-pill').forEach(pill => {
+      pill.addEventListener('click', () => {
+        document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+        pill.classList.add('active');
+        currentFilter = pill.getAttribute('data-filter');
+        tbody.innerHTML = '';
+        transactionsHistory.forEach(renderTableRow);
+      });
+    });
+
+    // Banner Inspect Click
+    document.getElementById('btn-banner-inspect').addEventListener('click', () => {
+      const inspector = document.getElementById('stream-inspector');
+      inspector.scrollIntoView({ behavior: 'smooth' });
+    });
+
+    // Gemma 27B AI Copilot Modal
+    const modal = document.getElementById('gemma-modal');
+    const modalBody = document.getElementById('modal-gemma-body');
+    document.getElementById('btn-close-modal').addEventListener('click', () => modal.classList.remove('show'));
+
+    document.getElementById('btn-inspect-gemma').addEventListener('click', async () => {
+      if (!selectedTx) {
+        alert("Please select a transaction to investigate.");
+        return;
+      }
+
+      modal.classList.add('show');
+      modalBody.innerHTML = `
+        <div style="text-align:center;padding:32px;">
+          <div style="color:var(--color-green);margin-bottom:8px;">● INITIALIZING GEMMA 27B COPILOT...</div>
+          <div style="color:#94a3b8;font-size:10px;">Synthesizing Tree SHAP attributions, behavioral sequence context, and graph topology...</div>
+        </div>
+      `;
+
+      try {
+        const payload = {
+          transaction: {
+            account_id: selectedTx.raw.account_id,
+            type: selectedTx.raw.type,
+            amount: selectedTx.raw.amount,
+            recipient: selectedTx.raw.recipient,
+            step: selectedTx.raw.step,
+            ml_attributions: selectedTx.tree_shap_top || []
+          },
+          sequence_evaluation: {
+            sequence_risk_score: selectedTx.seq_risk,
+            graph_metrics: selectedTx.graph_summary || {},
+            behavioral_features: {
+              amount_vs_avg_ratio: 1.0,
+              time_since_last_tx: 1.5,
+              tx_count_1h: 2,
+              rapid_small_tx_count: 0
+            },
+            history_summary: []
+          },
+          hybrid_risk: {
+            final_risk_score: selectedTx.final_risk,
+            risk_tier: selectedTx.risk_tier,
+            policy_decision: selectedTx.policy_decision,
+            signals: (selectedTx.signals || []).map(s => ({ title: s, description: s }))
+          }
+        };
+
+        const res = await fetch('/api/investigate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const brief = await res.json();
+        modalBody.innerHTML = `
+          <div style="border-left:3px solid var(--color-green);padding-left:12px;margin-bottom:14px;">
+            <div style="font-size:10px;color:#94a3b8;text-transform:uppercase;">SAR Threat Assessment</div>
+            <div style="font-size:12px;color:#f8fafc;font-weight:600;margin-top:2px;">${brief.threat_summary || 'Autonomous risk brief synthesized.'}</div>
+          </div>
+
+          <div style="margin-bottom:12px;">
+            <div style="font-size:10px;color:#94a3b8;text-transform:uppercase;margin-bottom:4px;">Observed Evidence & SHAP Attributions:</div>
+            <ul style="list-style:none;padding:0;margin:0;">
+              ${(brief.observed_signals || []).map(s => `<li style="color:#fca5a5;margin-bottom:3px;">- ${s}</li>`).join('')}
+            </ul>
+          </div>
+
+          <div style="margin-bottom:12px;">
+            <div style="font-size:10px;color:#94a3b8;text-transform:uppercase;margin-bottom:4px;">Mitigating Counter-Evidence Considered:</div>
+            <ul style="list-style:none;padding:0;margin:0;">
+              ${(brief.counter_evidence || []).map(c => `<li style="color:#93c5fd;margin-bottom:3px;">- ${c}</li>`).join('')}
+            </ul>
+          </div>
+
+          <div style="background:#111622;border:1px solid #1e2638;padding:10px;border-radius:2px;margin-bottom:12px;">
+            <div style="font-size:9px;color:#64748b;text-transform:uppercase;">Recommended Regulatory Action</div>
+            <div style="font-size:11px;color:#34d399;font-weight:700;margin-top:2px;">${brief.recommended_action || 'Step-up biometric verification.'}</div>
+          </div>
+
+          <div style="display:flex;justify-content:space-between;font-size:9px;color:#64748b;border-top:1px solid #1e2535;padding-top:8px;">
+            <span>Source: ${brief.source || 'FraudPulse Copilot'}</span>
+            <span>Gen Time: ${brief.generation_time_ms || 120}ms</span>
+          </div>
+        `;
+      } catch (err) {
+        modalBody.innerHTML = `<div style="color:#ef4444;text-align:center;padding:24px;">Failed to generate SAR brief: ${err.message}</div>`;
+      }
+    });
+
+    // Start on page load
+    window.addEventListener('DOMContentLoaded', () => {
+      initEventSource();
+    });
+  </script>
+</body>
+</html>

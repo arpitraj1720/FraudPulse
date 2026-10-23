@@ -10,6 +10,8 @@ from collections import defaultdict, deque
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
+from backend.graph_engine import graph_risk_engine
+
 
 @dataclass
 class TransactionRecord:
@@ -41,6 +43,7 @@ class SequenceEngine:
         else:
             self.history.clear()
             self.known_recipients.clear()
+            graph_risk_engine.reset()
 
     def seed_account(self, account_id: str, records: List[Dict[str, Any]]) -> None:
         """Seed account history for demo scenarios."""
@@ -186,6 +189,22 @@ class SequenceEngine:
             "micro_tx_before_large_tx": micro_tx_before_large_tx,
         }
 
+        # Feature 6: Graph Topology & Counterparty Network Analysis
+        graph_eval = graph_risk_engine.evaluate_topology(
+            sender=account_id,
+            recipient=recipient,
+            amount=amount,
+            step=step,
+            tx_timestamp=now,
+        )
+        if graph_eval["signals"]:
+            signals.extend(graph_eval["signals"])
+            sequence_risk += graph_eval["graph_risk_score"]
+
+        # Merge graph metrics into behavioral features
+        for k, v in graph_eval["metrics"].items():
+            behavioral_features[f"graph_{k}"] = v
+
         # Commit transaction to state
         current_tx = TransactionRecord(
             timestamp=now,
@@ -205,6 +224,8 @@ class SequenceEngine:
             "is_micro_probing": is_micro_probing,
             "is_novel_recipient": is_novel_recipient,
             "is_established_payee": is_established_payee,
+            "graph_metrics": graph_eval["metrics"],
+            "graph_risk_score": graph_eval["graph_risk_score"],
             "behavioral_features": behavioral_features,
             "history_summary": [
                 {
@@ -220,13 +241,24 @@ class SequenceEngine:
 
 
 def compute_hybrid_risk(ml_prob: float, sequence_eval: Dict[str, Any]) -> Dict[str, Any]:
-    """Combines static ML probability with dynamic sequence behavioral risk."""
+    """Combines static ML probability with dynamic sequence behavioral risk and graph topology."""
     seq_score = sequence_eval.get("sequence_risk_score", 0.0)
     signals = sequence_eval.get("signals", [])
+
+    # Graph-specific critical overrides
+    has_critical_graph_signal = any(
+        s.get("code") in ("CIRCULAR_WASH_CYCLE", "DIRECT_FLAGGED_DESTINATION")
+        for s in signals
+    )
+    has_mule_fan_in = any(s.get("code") == "MULE_FAN_IN_SPIKE" for s in signals)
 
     # If critical micro-probing pattern is flagged, give sequence engine strong dominance
     if sequence_eval.get("is_micro_probing"):
         combined_score = max(0.82, 0.20 * ml_prob + 0.80 * seq_score)
+    elif has_critical_graph_signal:
+        combined_score = max(0.92, 0.20 * ml_prob + 0.80 * seq_score)
+    elif has_mule_fan_in:
+        combined_score = max(0.80, 0.25 * ml_prob + 0.75 * seq_score)
     elif sequence_eval.get("is_established_payee"):
         # Verified recipient trust discounts static ML false alarms
         combined_score = min(0.38, 0.20 * ml_prob + 0.80 * seq_score)

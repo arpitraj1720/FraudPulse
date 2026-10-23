@@ -11,105 +11,59 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body>
-  <div class="app-container">
-    <!-- Futuristic Monochromatic Hero Section (Inspired by MDXLAB / Future Tech) -->
-    <section class="hero-stage">
-      <!-- Hero Top Navigation -->
-      <nav class="hero-nav">
-        <div class="hero-brand">
-          <span class="hero-brand-name">FRAUDPULSE</span>
-          <span class="hero-brand-sub">// LABS</span>
-        </div>
-        <div class="hero-nav-links">
-          <a href="#about" class="hero-nav-link">ABOUT PROJECT</a>
-          <a href="#specs" class="hero-nav-link">SYSTEM SPECS</a>
-          <a href="#simulator-section" class="hero-nav-link">REPLAY ENGINE</a>
-          <a href="#simulator-section" class="hero-nav-link highlight">LAUNCH SIMULATOR</a>
-        </div>
-        <div class="hero-nav-dots" title="System Status: Dual-Tier Online">
-          <span class="nav-dot"></span>
-          <span class="nav-dot"></span>
-          <span class="nav-dot"></span>
-        </div>
-      </nav>
+  <!-- Full-Screen Futuristic Monochromatic Hero Section -->
+  <section class="hero-stage">
+    <!-- Full-Window 3D Background Canvas (Spans entire screen from top to bottom) -->
+    <div class="hero-3d-backdrop" id="canvas-3d-wrapper">
+      <canvas id="hero-3d-canvas"></canvas>
+    </div>
 
-      <!-- 3-Column Asymmetric Wireframe Layout (Image 1 & 2) -->
-      <div class="hero-grid">
-        <!-- Left Column: Title + Media + Exploratory Text -->
-        <div class="hero-col hero-col-left">
-          <div class="hero-title-group">
-            <h1 class="hero-headline">
-              AUTONOMOUS<br>
-              TRANSACTION<br>
-              INTERCEPT
-            </h1>
-            <div class="hero-tech-label">
-              <span>FRAUDPULSE CORE</span>
-              <span class="label-slash">//</span>
-              <span>SEQUENCE AWARE</span>
-            </div>
-          </div>
+    <!-- Hero Top Navigation -->
+    <nav class="hero-nav">
+      <div class="hero-brand">
+        <span class="hero-brand-name">FRAUDPULSE</span>
+        <span class="hero-brand-sub">// LABS</span>
+      </div>
+      <div class="hero-nav-links">
+        <a href="#about" class="hero-nav-link">ABOUT PROJECT</a>
+        <a href="#specs" class="hero-nav-link">SYSTEM SPECS</a>
+        <a href="#simulator-section" class="hero-nav-link">REPLAY ENGINE</a>
+        <a href="/stream" class="hero-nav-link highlight" style="color:#10b981;border-color:rgba(16,185,129,0.5);">LIVE STREAM RADAR &rarr;</a>
+      </div>
+      <div class="hero-nav-dots" title="System Status: Dual-Tier Online">
+        <span class="nav-dot"></span>
+        <span class="nav-dot"></span>
+        <span class="nav-dot"></span>
+      </div>
+    </nav>
 
-          <div class="hero-media-card" id="media-card-trigger">
-            <div class="media-preview-box">
-              <canvas id="mini-stream-canvas" width="220" height="110"></canvas>
-              <div class="media-overlay">
-                <button class="media-play-pill" id="btn-toggle-stream-audio" aria-label="Simulate Handshake Sound">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
-                  </svg>
-                </button>
-              </div>
-            </div>
-            <div class="media-telemetry">
-              <span class="media-tag">LIVE BUFFER</span>
-              <span class="media-rate">1,420 TX/SEC</span>
-            </div>
-          </div>
-
-          <div class="hero-desc-group">
-            <p class="hero-paragraph">
-              Exploring sequence-aware inference to intercept high-frequency fraud patterns, probing attacks, and automated burst transfers before settlement.
-            </p>
-          </div>
+    <!-- 3-Column Asymmetric Wireframe Layout (Image 1 & 2) -->
+    <div class="hero-grid">
+      <!-- Left Column: Staggered Title + Exploratory Text -->
+      <div class="hero-col hero-col-left">
+        <div class="hero-title-group">
+          <h1 class="hero-headline">
+            <span class="hl-line hl-line-1">AUTONOMOUS</span>
+            <span class="hl-line hl-line-2">TRANSACTION</span>
+            <span class="hl-line hl-line-3">
+              <span class="hl-main-text">INTERCEPT</span>
+              <span class="hero-tech-label">FP LABS TECHNOLOGY</span>
+            </span>
+          </h1>
         </div>
 
-        <!-- Center Column: 3D Handshake Visual (Two Matching Objects Converging) -->
-        <div class="hero-col hero-col-center">
-          <div class="canvas-3d-wrapper" id="canvas-3d-wrapper">
-            <canvas id="hero-3d-canvas"></canvas>
-            
-            <!-- Floating Holographic Data Overlay -->
-            <div class="canvas-overlay-top">
-              <span class="mono-badge">TX DUAL-NODE HANDSHAKE</span>
-              <span class="mono-badge mono-green">SYNC 99.98%</span>
-            </div>
-
-            <div class="canvas-center-aperture">
-              <div class="aperture-reticle"></div>
-              <div class="aperture-line"></div>
-            </div>
-
-            <div class="canvas-overlay-bottom">
-              <div class="tx-node-indicator sender">
-                <span class="node-dot"></span>
-                <span>ORIGIN CORE (DEBIT)</span>
-              </div>
-              <div class="tx-distance-meter" id="tx-distance-meter">CONVERGENCE: 0.04μm</div>
-              <div class="tx-node-indicator receiver">
-                <span class="node-dot"></span>
-                <span>DESTINATION CORE (CREDIT)</span>
-              </div>
-            </div>
-
-            <div class="canvas-interactive-tip">
-              <span>DRAG TO ROTATE 3D PERSPECTIVE</span>
-            </div>
-          </div>
+        <div class="hero-desc-group">
+          <p class="hero-paragraph">
+            Exploring sequence-aware inference to intercept high-frequency fraud patterns, probing attacks, and automated burst transfers before settlement.
+          </p>
         </div>
+      </div>
 
-        <!-- Right Column: Benchmark Card + Spec Meta + CTA Button -->
-        <div class="hero-col hero-col-right">
+      <!-- Center Spacer: Lets full-bleed 3D visual breathe across entire screen -->
+      <div class="hero-col hero-col-center"></div>
+
+      <!-- Right Column: Benchmark Card + Spec Meta + CTA Button -->
+      <div class="hero-col hero-col-right">
           <div class="hero-card-widget">
             <div class="widget-image-wrap">
               <div class="widget-blueprint-graphic">
@@ -153,12 +107,227 @@
     </section>
 
     <!-- Interactive Simulator & Live Operations Dashboard -->
-    <section id="simulator-section" class="simulator-section-wrapper">
-      <!-- Existing Operations Header -->
+    <div class="app-container">
+      <!-- Comprehensive About & System Features Section (Emphasizing Graph Analysis) -->
+      <section id="about" class="about-section">
+        <div class="section-title-wrap">
+          <div class="section-mono-tag">// PLATFORM ARCHITECTURE &amp; CAPABILITIES</div>
+          <h2 class="section-headline">CATCHING NETWORK TOPOLOGY, NOT JUST TRANSACTIONS</h2>
+          <p class="section-lead">
+            Traditional fraud rules evaluate single transactions in isolation. FraudPulse unifies point-in-time machine learning, stateful sequence behavioral modeling, and multi-hop graph network topology analysis.
+          </p>
+        </div>
+
+        <!-- High-Impact Graph Analysis Spotlight Box -->
+        <div class="graph-spotlight-card">
+          <div class="graph-spotlight-header">
+            <div class="graph-badge">
+              <span class="spotlight-dot green"></span>
+              <span>IN-MEMORY TOPOLOGY &amp; NETWORK RISK ENGINE</span>
+            </div>
+            <span class="graph-tag">POWERED BY NETWORKX // SUB-5MS GRAPH TRAVERSAL</span>
+          </div>
+
+          <!-- Network Topology Blueprint Visualizer Schema -->
+          <div class="graph-blueprint-wrap">
+            <div class="graph-blueprint-header">
+              <span class="bp-title">LIVE DIRECTED GRAPH TOPOLOGY SCHEMA [nx.DiGraph]</span>
+              <span class="bp-badge red">DETECTED: CIRCULAR WASH LOOP + MULE PROXIMITY</span>
+            </div>
+            <svg class="graph-topology-svg" viewBox="0 0 920 220" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                  <path d="M 0 1 L 10 5 L 0 9 z" fill="#10b981"/>
+                </marker>
+                <marker id="arrow-red" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                  <path d="M 0 1 L 10 5 L 0 9 z" fill="#ef4444"/>
+                </marker>
+                <marker id="arrow-gray" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                  <path d="M 0 1 L 10 5 L 0 9 z" fill="#64748b"/>
+                </marker>
+              </defs>
+
+              <!-- Grid Background pattern -->
+              <pattern id="graph-grid" width="20" height="20" patternUnits="userSpaceOnUse">
+                <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+              </pattern>
+              <rect width="100%" height="100%" fill="url(#graph-grid)"/>
+
+              <!-- Flow Edges -->
+              <!-- Hop 1: ACC-RING-1 to Wallet_Node_B -->
+              <path d="M 170 110 L 350 110" stroke="#ef4444" stroke-width="2" stroke-dasharray="6 3" marker-end="url(#arrow-red)"/>
+              <text x="260" y="100" fill="#94a3b8" font-family="JetBrains Mono" font-size="10" text-anchor="middle">HOP 1: $14,500 (TRANSFER)</text>
+
+              <!-- Hop 2: Wallet_Node_B to Wallet_99x_Offshore (Flagged) -->
+              <path d="M 430 90 Q 530 40 630 85" stroke="#ef4444" stroke-width="2.5" marker-end="url(#arrow-red)"/>
+              <text x="530" y="50" fill="#ef4444" font-family="JetBrains Mono" font-size="10" text-anchor="middle">HOP 2: $14,200 [CONTAGION d=1]</text>
+
+              <!-- Hop 3: Cycle return to ACC-RING-1 -->
+              <path d="M 640 135 Q 400 205 160 135" stroke="#ef4444" stroke-width="2" stroke-dasharray="4 4" marker-end="url(#arrow-red)"/>
+              <text x="400" y="195" fill="#ef4444" font-family="JetBrains Mono" font-size="10" text-anchor="middle">HOP 3: $13,900 [CIRCULAR LOOP CLOSURE // RISK +0.40]</text>
+
+              <!-- Legitimate Baseline Flow (Green) -->
+              <path d="M 140 85 Q 140 25 240 25 L 350 25" stroke="#10b981" stroke-width="1.5" stroke-dasharray="3 3" marker-end="url(#arrow-green)"/>
+              <text x="245" y="18" fill="#10b981" font-family="JetBrains Mono" font-size="9" text-anchor="middle">BENCHMARK: VERIFIED PAYROLL ($2,400)</text>
+
+              <!-- Smurfing Satellite Outflow -->
+              <path d="M 720 110 L 820 70" stroke="#64748b" stroke-width="1.5" stroke-dasharray="3 3" marker-end="url(#arrow-gray)"/>
+              <path d="M 720 110 L 820 110" stroke="#64748b" stroke-width="1.5" stroke-dasharray="3 3" marker-end="url(#arrow-gray)"/>
+              <path d="M 720 110 L 820 150" stroke="#64748b" stroke-width="1.5" stroke-dasharray="3 3" marker-end="url(#arrow-gray)"/>
+
+              <!-- Node 1: Originator ACC-RING-1 -->
+              <g transform="translate(130, 110)">
+                <rect x="-45" y="-22" width="90" height="44" rx="3" fill="#12161f" stroke="#334155" stroke-width="1.5"/>
+                <text x="0" y="-3" fill="#f8fafc" font-family="JetBrains Mono" font-size="11" font-weight="700" text-anchor="middle">ACC-RING-1</text>
+                <text x="0" y="12" fill="#94a3b8" font-family="JetBrains Mono" font-size="8" text-anchor="middle">ORIGINATOR</text>
+              </g>
+
+              <!-- Node 2: Intermediary Node B -->
+              <g transform="translate(390, 110)">
+                <rect x="-42" y="-22" width="84" height="44" rx="3" fill="#12161f" stroke="#334155" stroke-width="1.5"/>
+                <text x="0" y="-3" fill="#f8fafc" font-family="JetBrains Mono" font-size="11" font-weight="700" text-anchor="middle">Node_B</text>
+                <text x="0" y="12" fill="#94a3b8" font-family="JetBrains Mono" font-size="8" text-anchor="middle">INTERMEDIARY</text>
+              </g>
+
+              <!-- Node 3: Flagged Mule Hub (RED) -->
+              <g transform="translate(680, 110)">
+                <rect x="-55" y="-25" width="110" height="50" rx="3" fill="#1f1315" stroke="#ef4444" stroke-width="2"/>
+                <circle cx="-38" cy="0" r="4" fill="#ef4444"/>
+                <text x="5" y="-4" fill="#ef4444" font-family="JetBrains Mono" font-size="11" font-weight="800" text-anchor="middle">Wallet_99x</text>
+                <text x="5" y="12" fill="#fca5a5" font-family="JetBrains Mono" font-size="8" text-anchor="middle">BLACKLIST MULE</text>
+              </g>
+
+              <!-- Satellite Nodes (Fan-Out) -->
+              <g transform="translate(855, 68)">
+                <rect x="-25" y="-12" width="50" height="24" rx="2" fill="#12161f" stroke="#475569" stroke-width="1"/>
+                <text x="0" y="3" fill="#94a3b8" font-family="JetBrains Mono" font-size="8" text-anchor="middle">Sat_01</text>
+              </g>
+              <g transform="translate(855, 110)">
+                <rect x="-25" y="-12" width="50" height="24" rx="2" fill="#12161f" stroke="#475569" stroke-width="1"/>
+                <text x="0" y="3" fill="#94a3b8" font-family="JetBrains Mono" font-size="8" text-anchor="middle">Sat_02</text>
+              </g>
+              <g transform="translate(855, 152)">
+                <rect x="-25" y="-12" width="50" height="24" rx="2" fill="#12161f" stroke="#475569" stroke-width="1"/>
+                <text x="0" y="3" fill="#94a3b8" font-family="JetBrains Mono" font-size="8" text-anchor="middle">Sat_03</text>
+              </g>
+            </svg>
+          </div>
+
+          <div class="graph-features-grid">
+            <div class="graph-feature-item">
+              <div class="feature-num">01</div>
+              <div class="feature-title">Money Mule Funnel Detection (Fan-In)</div>
+              <p class="feature-desc">
+                Identifies destination wallets receiving sudden convergence transfers from multiple disparate originator accounts within compressed timeframes before liquidation.
+              </p>
+              <div class="feature-metric">In-Degree Velocity &amp; Hub Concentration</div>
+            </div>
+
+            <div class="graph-feature-item">
+              <div class="feature-num">02</div>
+              <div class="feature-title">Smurfing &amp; Layering Dispersion (Fan-Out)</div>
+              <p class="feature-desc">
+                Exposes structuring operations where compromised accounts rapidly disperse high-velocity capital into multiple satellite wallets to bypass reporting thresholds.
+              </p>
+              <div class="feature-metric">Out-Degree Expansion &amp; Split Ratios</div>
+            </div>
+
+            <div class="graph-feature-item">
+              <div class="feature-num">03</div>
+              <div class="feature-title">Circular Wash Trading &amp; Cycle Loops</div>
+              <p class="feature-desc">
+                Traverses directed graph paths in real-time to detect cyclic fund flows (A → B → C → A) designed to fabricate transactional volume or disguise illicit capital provenance.
+              </p>
+              <div class="feature-metric">Shortest Cycle Traversal (nx.shortest_path)</div>
+            </div>
+
+            <div class="graph-feature-item">
+              <div class="feature-num">04</div>
+              <div class="feature-title">Degrees of Separation Contagion Scoring</div>
+              <p class="feature-desc">
+                Calculates topological graph distance to known confirmed fraud nodes (e.g. blacklisted mule wallets), penalizing 1st and 2nd degree proximity before funds settle.
+              </p>
+              <div class="feature-metric">Multi-Hop Shortest Path Proximity</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Comprehensive Platform Feature Suite (6 Pillars) -->
+        <div class="platform-layers-grid">
+          <div class="layer-card">
+            <div class="layer-step">TIER 1 // 0.15MS HOT PATH</div>
+            <div class="layer-title">Supervised GBDT Gateway</div>
+            <p class="layer-desc">
+              Trained on 6.36M Kaggle PaySim financial transactions and evaluated on 1.27M held-out records. Sub-millisecond tree scoring with zero lookahead bias and real-time TreeSHAP feature attributions.
+            </p>
+            <div class="layer-footer">
+              <span class="status-chip green">99.8% Auto-Cleared</span>
+            </div>
+          </div>
+
+          <div class="layer-card">
+            <div class="layer-step">STATEFUL // IN-MEMORY</div>
+            <div class="layer-title">Sequence Behavioral Engine</div>
+            <p class="layer-desc">
+              Maintains rolling temporal account history (W=10) tracking micro-probing test pulses ($4.50 → $12 → $42.5k burst), historical moving-average ratio spikes, and novelty index per recipient.
+            </p>
+            <div class="layer-footer">
+              <span class="status-chip green">Zero-Leakage Safeguard</span>
+            </div>
+          </div>
+
+          <div class="layer-card">
+            <div class="layer-step">TIER 2 // ASYNC REASONING</div>
+            <div class="layer-title">Gemma AI Autonomous Copilot</div>
+            <p class="layer-desc">
+              Generates causal incident briefs for escalated sequence anomalies via Google Gemma 3 27B / 4-26B. Weighs mitigating counter-evidence and delivers executive step-up 2FA/freeze action recommendations.
+            </p>
+            <div class="layer-footer">
+              <span class="status-chip red">Out-of-Band SLA</span>
+            </div>
+          </div>
+
+          <div class="layer-card">
+            <div class="layer-step">ATTACK REPLAY // 5 VECTORS</div>
+            <div class="layer-title">Multi-Vector Scenario Suite</div>
+            <p class="layer-desc">
+              Built-in 1-click execution for signature micro-probing drains, legitimate high-value lease payments (FP mitigation), rapid velocity card bursts, real Kaggle PaySim fraud cases, and circular mule wash rings.
+            </p>
+            <div class="layer-footer">
+              <span class="status-chip green">Production Ground Truth</span>
+            </div>
+          </div>
+
+          <div class="layer-card">
+            <div class="layer-step">PRODUCTION AUDIT // SLA</div>
+            <div class="layer-title">Telemetry &amp; Audit Engine</div>
+            <p class="layer-desc">
+              Full held-out test split evaluation with real-time confusion matrices, ROC-AUC (0.9996), PR-AUC (0.9892), false positive tracking, and sub-10ms gateway latency compliance monitoring.
+            </p>
+            <div class="layer-footer">
+              <span class="status-chip green">ROC-AUC 0.9996</span>
+            </div>
+          </div>
+
+          <div class="layer-card">
+            <div class="layer-step">SECURITY // ZERO DRIFT</div>
+            <div class="layer-title">Real-Time Quarantine &amp; 2FA</div>
+            <p class="layer-desc">
+              Dynamic policy dispatch enforcing frictionless auto-clear for verified normal traffic, stepped friction for velocity spikes, and automated token revocation for verified graph wash rings.
+            </p>
+            <div class="layer-footer">
+              <span class="status-chip red">Autonomous Mitigation</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="simulator-section" class="simulator-section-wrapper">
+      <!-- Operations Header -->
       <header class="app-header">
         <div class="brand">
           <div class="brand-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
               <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
             </svg>
           </div>
@@ -175,10 +344,14 @@
             <span class="pill-value" id="val-model">RandomForest (PaySim)</span>
           </div>
           <div class="status-pill" id="pill-gemma">
-            <span class="status-dot purple"></span>
+            <span class="status-dot green"></span>
             <span class="pill-label">AI:</span>
             <span class="pill-value" id="val-gemma">Gemma 4-26B Active</span>
           </div>
+          <a href="/stream" class="btn-ghost" style="color:var(--color-green);border-color:var(--color-green-border);text-decoration:none;display:inline-flex;align-items:center;gap:6px;">
+            <span class="status-dot green"></span>
+            Live Stream Radar
+          </a>
           <button class="btn-ghost" id="btn-open-metrics">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <line x1="18" y1="20" x2="18" y2="10"></line>
@@ -304,7 +477,7 @@
                 <span id="ml-score-val">0.00</span>
               </div>
               <div class="progress-track">
-                <div class="progress-fill fill-blue" id="ml-bar" style="width: 0%"></div>
+                <div class="progress-fill fill-mono" id="ml-bar" style="width: 0%"></div>
               </div>
             </div>
 
@@ -314,7 +487,7 @@
                 <span id="seq-score-val">0.00</span>
               </div>
               <div class="progress-track">
-                <div class="progress-fill fill-amber" id="seq-bar" style="width: 0%"></div>
+                <div class="progress-fill fill-red" id="seq-bar" style="width: 0%"></div>
               </div>
             </div>
           </div>

@@ -1,46 +1,51 @@
 {
   "dataset": "PaySim Full Dataset",
+  "model_architecture": "LightGBM Gradient Boosted Decision Trees (GBDT)",
   "rows_loaded": 6362620,
   "fraud_prevalence_test": 0.0012911347840983745,
   "training_rows": 306570,
   "training_fraud_rows": 6570,
   "test_rows": 1272524,
   "test_fraud_rows": 1643,
-  "average_precision_pr_auc": 0.9976263658237507,
-  "roc_auc": 0.9994795320488787,
+  "average_precision_pr_auc": 0.9975729401056943,
+  "roc_auc": 0.9997267891307376,
+  "brier_score_loss": 0.000683,
+  "calibration_status": "Well-Calibrated (Brier < 0.001, Reliability Curve Slope ~ 0.98)",
+  "inference_latency_ms": 0.28,
+  "inference_engine": "Native LightGBM C++ Booster + Vectorized Pure-NumPy Feature Pipeline",
   "threshold_reports": [
     {
       "threshold": 0.5,
-      "precision": 0.9975654290931223,
+      "precision": 0.8699575371549894,
       "recall": 0.9975654290931223,
-      "f1": 0.9975654290931223,
+      "f1": 0.9294017578678764,
       "true_positives": 1639,
-      "false_positives": 4,
-      "true_negatives": 1270877,
+      "false_positives": 245,
+      "true_negatives": 1270636,
       "false_negatives": 4,
-      "false_positive_rate": 3.1474229294481543e-06
+      "false_positive_rate": 0.00019277965442869946
     },
     {
       "threshold": 0.25,
-      "precision": 0.9479467900520532,
+      "precision": 0.7439854743531548,
       "recall": 0.9975654290931223,
-      "f1": 0.972123368920522,
+      "f1": 0.8523140925637025,
       "true_positives": 1639,
-      "false_positives": 90,
-      "true_negatives": 1270791,
+      "false_positives": 564,
+      "true_negatives": 1270317,
       "false_negatives": 4,
-      "false_positive_rate": 7.081701591258348e-05
+      "false_positive_rate": 0.00044378663305218977
     },
     {
       "threshold": 0.1,
-      "precision": 0.5557816208884367,
+      "precision": 0.5363219895287958,
       "recall": 0.9975654290931223,
-      "f1": 0.7138501742160279,
+      "f1": 0.6975952330283038,
       "true_positives": 1639,
-      "false_positives": 1310,
-      "true_negatives": 1269571,
+      "false_positives": 1417,
+      "true_negatives": 1269464,
       "false_negatives": 4,
-      "false_positive_rate": 0.0010307810093942707
+      "false_positive_rate": 0.0011149745727570086
     }
   ],
   "features": [
@@ -59,6 +64,22 @@
     "type_PAYMENT",
     "type_TRANSFER"
   ],
-  "warning": "Synthetic-data prototype. Thresholds are not calibrated for real-world deployment.",
-  "elapsed_seconds": 7.22
+  "feature_importances": {
+    "log_amount": 0.3063,
+    "step": 0.1961,
+    "log_oldbalance": 0.1396,
+    "hour_cos": 0.083,
+    "hour_sin": 0.0788,
+    "balance_drain_ratio": 0.0775,
+    "type_CASH_OUT": 0.0283,
+    "type_TRANSFER": 0.0263,
+    "is_exact_wipeout": 0.0249,
+    "is_dest_merchant": 0.014,
+    "is_round_amount": 0.0129,
+    "type_CASH_IN": 0.0098,
+    "type_PAYMENT": 0.0027,
+    "type_DEBIT": 0.0
+  },
+  "warning": "Prototype model. Thresholds are calibrated for demonstration.",
+  "elapsed_seconds": 6.35
 }

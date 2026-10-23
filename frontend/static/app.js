@@ -51,7 +51,7 @@ document.addEventListener("DOMContentLoaded", () => {
         valGemma.textContent = (data.gemma_model || "Gemma Active").replace("models/", "");
       } else {
         valGemma.textContent = "Offline Fallback";
-        document.getElementById("pill-gemma").querySelector(".status-dot").className = "status-dot amber";
+        document.getElementById("pill-gemma").querySelector(".status-dot").className = "status-dot red";
       }
     } catch (e) {
       console.warn("Could not fetch health:", e);
@@ -98,7 +98,7 @@ document.addEventListener("DOMContentLoaded", () => {
     clearTimerInterval();
 
     replayStatus.textContent = "⚡ Tier 1 Hot Path running...";
-    replayStatus.style.color = "var(--color-blue)";
+    replayStatus.style.color = "var(--text-main)";
 
     // Clear feed & reset dials immediately
     timelineFeed.innerHTML = "";
@@ -138,7 +138,7 @@ document.addEventListener("DOMContentLoaded", () => {
         // SUSPICIOUS TRANSACTION: Escalate to Tier 2 Gemma asynchronously!
         renderTier2Loading(data.tier1_latency_ms);
         replayStatus.textContent = `⚡ Flagged (${data.tier1_latency_ms}ms) | 🤖 Tier 2 Generating...`;
-        replayStatus.style.color = "var(--color-amber)";
+        replayStatus.style.color = "var(--color-red)";
         isReplaying = false;
 
         // Async Background fetch to Tier 2 Gemma
@@ -162,7 +162,7 @@ document.addEventListener("DOMContentLoaded", () => {
     } catch (e) {
       console.error("Replay error:", e);
       replayStatus.textContent = "Error";
-      replayStatus.style.color = "var(--color-rose)";
+      replayStatus.style.color = "var(--color-red)";
       renderEmptyInvestigation(`Notice: ${e.message || "Failed to load sequence."} Click again to retry.`);
       isReplaying = false;
     }
@@ -185,7 +185,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     accountContext.innerHTML = `Monitoring: <span class="highlight">${payload.account_id}</span>`;
     replayStatus.textContent = "⚡ Tier 1 Scoring...";
-    replayStatus.style.color = "var(--color-blue)";
+    replayStatus.style.color = "var(--text-main)";
 
     try {
       const res = await fetch("/api/score", {
@@ -222,7 +222,7 @@ document.addEventListener("DOMContentLoaded", () => {
       } else {
         renderTier2Loading(data.tier1_latency_ms);
         replayStatus.textContent = `⚡ Flagged (${data.tier1_latency_ms}ms) | 🤖 Tier 2 Generating...`;
-        replayStatus.style.color = "var(--color-amber)";
+        replayStatus.style.color = "var(--color-red)";
 
         try {
           const invRes = await fetch("/api/investigate", {
@@ -242,7 +242,7 @@ document.addEventListener("DOMContentLoaded", () => {
     } catch (e) {
       console.error("Scoring error:", e);
       replayStatus.textContent = "Error";
-      replayStatus.style.color = "var(--color-rose)";
+      replayStatus.style.color = "var(--color-red)";
     }
   });
 
@@ -450,8 +450,8 @@ document.addEventListener("DOMContentLoaded", () => {
             <td>${(r.precision * 100).toFixed(1)}%</td>
             <td>${(r.recall * 100).toFixed(1)}%</td>
             <td>${r.f1.toFixed(3)}</td>
-            <td style="color: var(--color-rose);">${r.false_positives}</td>
-            <td style="color: var(--color-amber);">${r.false_negatives}</td>
+            <td style="color: var(--color-red);">${r.false_positives}</td>
+            <td style="color: var(--color-red);">${r.false_negatives}</td>
             <td>${(r.false_positive_rate * 100).toFixed(2)}%</td>
           </tr>
         `).join("");
@@ -459,7 +459,7 @@ document.addEventListener("DOMContentLoaded", () => {
       modalMetricsBody.innerHTML = `
         <p><strong>Dataset:</strong> ${m.dataset}</p>
         <p><strong>Test Split:</strong> ${m.test_rows.toLocaleString()} rows (${m.test_fraud_rows} fraud cases, prevalence: ${(m.fraud_prevalence_test * 100).toFixed(2)}%)</p>
-        <p><strong>Average Precision (PR-AUC):</strong> <span style="color: var(--color-blue); font-weight: 700;">${m.average_precision_pr_auc.toFixed(4)}</span> | <strong>ROC-AUC:</strong> <span style="color: var(--color-green); font-weight: 700;">${m.roc_auc.toFixed(4)}</span></p>
+        <p><strong>Average Precision (PR-AUC):</strong> <span style="color: #ffffff; font-weight: 700;">${m.average_precision_pr_auc.toFixed(4)}</span> | <strong>ROC-AUC:</strong> <span style="color: var(--color-green); font-weight: 700;">${m.roc_auc.toFixed(4)}</span></p>
 
         <table class="metrics-table">
           <thead>
@@ -497,12 +497,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ========================================================================
   // FUTURISTIC 3D TRANSACTION VISUAL (THREE.JS)
-  // Two matching 3D objects moving symmetrically toward each other
+  // ========================================================================
+  // FUTURISTIC 3D TRANSACTION VISUAL (THREE.JS)
+  // Two matching 3D objects sweeping from top & bottom along a 3D curved arc
   // ========================================================================
   function initHero3DAnimation() {
     const canvas = document.getElementById("hero-3d-canvas");
     const container = document.getElementById("canvas-3d-wrapper");
-    const distanceMeter = document.getElementById("tx-distance-meter");
     if (!canvas || !container || typeof THREE === "undefined") {
       console.warn("Three.js or canvas not available for 3D hero.");
       return;
@@ -516,7 +517,7 @@ document.addEventListener("DOMContentLoaded", () => {
       0.1,
       100
     );
-    camera.position.set(0, 0, 8.5);
+    camera.position.set(0, 0, 9.2);
 
     const renderer = new THREE.WebGLRenderer({
       canvas: canvas,
@@ -526,149 +527,113 @@ document.addEventListener("DOMContentLoaded", () => {
     renderer.setSize(container.clientWidth, container.clientHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.1;
+    renderer.toneMappingExposure = 1.15;
 
     // --- Studio Lighting ---
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.85);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.9);
     scene.add(ambientLight);
 
-    const keyLight = new THREE.DirectionalLight(0xffffff, 1.2);
-    keyLight.position.set(4, 7, 5);
+    const keyLight = new THREE.DirectionalLight(0xffffff, 1.3);
+    keyLight.position.set(5, 8, 6);
     scene.add(keyLight);
 
-    const fillLight = new THREE.DirectionalLight(0x94a3b8, 0.7);
-    fillLight.position.set(-5, -2, 4);
+    const fillLight = new THREE.DirectionalLight(0x94a3b8, 0.75);
+    fillLight.position.set(-6, -3, 5);
     scene.add(fillLight);
 
-    const rimLight = new THREE.DirectionalLight(0xffffff, 0.9);
-    rimLight.position.set(0, 8, -4);
+    const rimLight = new THREE.DirectionalLight(0xffffff, 0.95);
+    rimLight.position.set(0, 9, -5);
     scene.add(rimLight);
 
     // Contact Plasma Point Light
-    const contactLight = new THREE.PointLight(0x38bdf8, 0, 4);
+    const contactLight = new THREE.PointLight(0x38bdf8, 0, 5);
     contactLight.position.set(0, 0, 0);
     scene.add(contactLight);
 
-    // --- Materials (Ceramic White & Dark Graphite Precision) ---
-    const ceramicMat = new THREE.MeshStandardMaterial({
-      color: 0xf8fafc,
-      roughness: 0.18,
-      metalness: 0.08,
+    // --- Material: Pure Matte Black (Zero Shine, Pure Texture) ---
+    const pureMatteBlack = new THREE.MeshStandardMaterial({
+      color: 0x080808,
+      roughness: 1.0,
+      metalness: 0.0,
     });
 
-    const graphiteMat = new THREE.MeshStandardMaterial({
-      color: 0x1e2430,
-      roughness: 0.35,
-      metalness: 0.85,
-    });
+    // Helper: Build a Solid Oblong Chain Link
+    function createSolidLink() {
+      const linkGroup = new THREE.Group();
 
-    const titaniumMat = new THREE.MeshStandardMaterial({
-      color: 0xd1d5db,
-      roughness: 0.25,
-      metalness: 0.92,
-    });
+      const linkRadius = 0.58;
+      const linkTube = 0.16;
+      const straightLen = 0.88;
 
-    const contactRingMat = new THREE.MeshStandardMaterial({
-      color: 0x0f172a,
-      roughness: 0.4,
-      metalness: 0.7,
-    });
+      // Top semicircular cap
+      const topArchGeom = new THREE.TorusGeometry(linkRadius, linkTube, 24, 48, Math.PI);
+      const topArch = new THREE.Mesh(topArchGeom, pureMatteBlack);
+      topArch.position.y = straightLen / 2;
+      linkGroup.add(topArch);
 
-    const glowAccentMat = new THREE.MeshBasicMaterial({
-      color: 0x38bdf8,
-    });
+      // Bottom semicircular cap
+      const btmArchGeom = new THREE.TorusGeometry(linkRadius, linkTube, 24, 48, Math.PI);
+      const btmArch = new THREE.Mesh(btmArchGeom, pureMatteBlack);
+      btmArch.rotation.z = Math.PI;
+      btmArch.position.y = -straightLen / 2;
+      linkGroup.add(btmArch);
 
-    // Helper: Build a Modular Cryptographic Terminal Cylinder (Image 2 Aesthetic)
-    function createTransactionCore(isTop) {
-      const group = new THREE.Group();
+      // Straight Left & Right Side Cylinders
+      const sideGeom = new THREE.CylinderGeometry(linkTube, linkTube, straightLen, 24);
+      const leftSide = new THREE.Mesh(sideGeom, pureMatteBlack);
+      leftSide.position.x = -linkRadius;
+      linkGroup.add(leftSide);
 
-      // Main Outer Sleeve
-      const mainGeom = new THREE.CylinderGeometry(1.05, 1.25, 2.8, 48, 1);
-      const mainMesh = new THREE.Mesh(mainGeom, ceramicMat);
-      mainMesh.position.y = isTop ? 1.4 : -1.4;
-      group.add(mainMesh);
+      const rightSide = new THREE.Mesh(sideGeom, pureMatteBlack);
+      rightSide.position.x = linkRadius;
+      linkGroup.add(rightSide);
 
-      // Chamfered Back Cap
-      const capGeom = new THREE.CylinderGeometry(
-        isTop ? 1.3 : 0.9,
-        isTop ? 0.9 : 1.3,
-        0.3,
-        48
-      );
-      const capMesh = new THREE.Mesh(capGeom, graphiteMat);
-      capMesh.position.y = isTop ? 2.85 : -2.85;
-      group.add(capMesh);
-
-      // Dark Precision Joint Collar
-      const collarGeom = new THREE.CylinderGeometry(1.08, 1.08, 0.45, 48);
-      const collarMesh = new THREE.Mesh(collarGeom, graphiteMat);
-      collarMesh.position.y = isTop ? 0.35 : -0.35;
-      group.add(collarMesh);
-
-      // Fine Inset Grooves
-      const grooveGeom = new THREE.TorusGeometry(1.085, 0.018, 16, 48);
-      const groove1 = new THREE.Mesh(grooveGeom, titaniumMat);
-      groove1.rotation.x = Math.PI / 2;
-      groove1.position.y = isTop ? 0.45 : -0.45;
-      group.add(groove1);
-
-      // Connector Face / Interface Plate
-      const faceGeom = new THREE.CylinderGeometry(0.98, 1.04, 0.2, 48);
-      const faceMesh = new THREE.Mesh(faceGeom, contactRingMat);
-      faceMesh.position.y = isTop ? 0.08 : -0.08;
-      group.add(faceMesh);
-
-      // Matching Latch / Pin Mechanism (Inspired by MDXLAB connector)
-      if (isTop) {
-        // Male Cryptographic Key / Probe
-        const probeBase = new THREE.CylinderGeometry(0.38, 0.45, 0.4, 32);
-        const probeBaseMesh = new THREE.Mesh(probeBase, titaniumMat);
-        probeBaseMesh.position.y = -0.15;
-        group.add(probeBaseMesh);
-
-        const pinGeom = new THREE.BoxGeometry(0.18, 0.35, 0.48);
-        const pinMesh = new THREE.Mesh(pinGeom, graphiteMat);
-        pinMesh.position.y = -0.22;
-        group.add(pinMesh);
-
-        // Core Glowing Aperture
-        const glowRingGeom = new THREE.TorusGeometry(0.68, 0.025, 16, 36);
-        const glowRing = new THREE.Mesh(glowRingGeom, glowAccentMat);
-        glowRing.rotation.x = Math.PI / 2;
-        glowRing.position.y = 0.01;
-        group.add(glowRing);
-      } else {
-        // Female Receptor Socket
-        const socketRim = new THREE.CylinderGeometry(0.48, 0.48, 0.35, 32);
-        const socketRimMesh = new THREE.Mesh(socketRim, graphiteMat);
-        socketRimMesh.position.y = 0.12;
-        group.add(socketRimMesh);
-
-        // Interlocking Notch Aperture
-        const notchGeom = new THREE.CylinderGeometry(0.3, 0.3, 0.2, 32);
-        const notchMesh = new THREE.Mesh(notchGeom, contactRingMat);
-        notchMesh.position.y = 0.18;
-        group.add(notchMesh);
-
-        // Matching Emissive Ring
-        const glowRingGeom = new THREE.TorusGeometry(0.68, 0.025, 16, 36);
-        const glowRing = new THREE.Mesh(glowRingGeom, glowAccentMat);
-        glowRing.rotation.x = Math.PI / 2;
-        glowRing.position.y = -0.01;
-        group.add(glowRing);
-      }
-
-      return group;
+      return linkGroup;
     }
 
-    // Two Matching Symmetric 3D Objects (Sender Core Top & Receiver Core Bottom)
-    const topCore = createTransactionCore(true);
-    const bottomCore = createTransactionCore(false);
+    // Helper: Build a Chain Segment (Top or Bottom)
+    // When both meet at y=0, their terminal links thread through each other perfectly
+    function createChainSegment(isTop) {
+      const segmentGroup = new THREE.Group();
+      const linkCount = 5;
+      const pitch = 1.20; // Exact mathematical interlocking pitch distance
+
+      for (let i = 0; i < linkCount; i++) {
+        const link = createSolidLink();
+
+        // Alternating 90-degree orthogonal rotation:
+        // Top segment: link 0 is in ZY plane (rotY = PI/2)
+        // Bottom segment: link 0 is in XY plane (rotY = 0)
+        // This ensures the two terminal links thread through each other perfectly!
+        if (isTop) {
+          if (i % 2 === 0) {
+            link.rotation.y = Math.PI / 2;
+          }
+        } else {
+          if (i % 2 === 1) {
+            link.rotation.y = Math.PI / 2;
+          }
+        }
+
+        // Space links outward from the center (terminal link at pitch/2)
+        const yOffset = (isTop ? 1 : -1) * (pitch / 2 + i * pitch);
+        link.position.y = yOffset;
+
+        segmentGroup.add(link);
+      }
+
+      return segmentGroup;
+    }
+
+    // Two Matching Chain Segments: Top Chain & Bottom Chain
+    // Broken initially, and connecting perfectly at the center
+    const topCore = createChainSegment(true);
+    const bottomCore = createChainSegment(false);
     scene.add(topCore);
     scene.add(bottomCore);
 
-    // Convergence Energy Pulse Ring
-    const pulseRingGeom = new THREE.RingGeometry(0.2, 0.85, 32);
+    // Dynamic Connection Surge Flare Ring
+    const pulseRingGeom = new THREE.RingGeometry(0.15, 1.25, 36);
     const pulseRingMat = new THREE.MeshBasicMaterial({
       color: 0x38bdf8,
       side: THREE.DoubleSide,
@@ -681,13 +646,13 @@ document.addEventListener("DOMContentLoaded", () => {
     scene.add(pulseRing);
 
     // Floating Ambient Data Sparks
-    const particleCount = 40;
+    const particleCount = 45;
     const particleGeom = new THREE.BufferGeometry();
     const particlePositions = new Float32Array(particleCount * 3);
     for (let i = 0; i < particleCount * 3; i += 3) {
-      particlePositions[i] = (Math.random() - 0.5) * 3.5;
-      particlePositions[i + 1] = (Math.random() - 0.5) * 1.5;
-      particlePositions[i + 2] = (Math.random() - 0.5) * 3.5;
+      particlePositions[i] = (Math.random() - 0.5) * 4.5;
+      particlePositions[i + 1] = (Math.random() - 0.5) * 2.5;
+      particlePositions[i + 2] = (Math.random() - 0.5) * 4.5;
     }
     particleGeom.setAttribute(
       "position",
@@ -695,9 +660,9 @@ document.addEventListener("DOMContentLoaded", () => {
     );
     const particleMat = new THREE.PointsMaterial({
       color: 0x60a5fa,
-      size: 0.035,
+      size: 0.04,
       transparent: true,
-      opacity: 0.6,
+      opacity: 0.65,
     });
     const particleSystem = new THREE.Points(particleGeom, particleMat);
     scene.add(particleSystem);
@@ -706,10 +671,10 @@ document.addEventListener("DOMContentLoaded", () => {
     let isDragging = false;
     let prevMouseX = 0;
     let prevMouseY = 0;
-    let targetRotY = 0.35;
-    let targetRotX = 0.12;
-    let currentRotY = 0.35;
-    let currentRotX = 0.12;
+    let targetRotY = 0.32;
+    let targetRotX = 0.1;
+    let currentRotY = 0.32;
+    let currentRotX = 0.1;
 
     container.addEventListener("mousedown", (e) => {
       isDragging = true;
@@ -741,8 +706,8 @@ document.addEventListener("DOMContentLoaded", () => {
         ) {
           const normX = (e.clientX - rect.left) / rect.width - 0.5;
           const normY = (e.clientY - rect.top) / rect.height - 0.5;
-          targetRotY = 0.35 + normX * 0.45;
-          targetRotX = 0.12 + normY * 0.3;
+          targetRotY = 0.32 + normX * 0.45;
+          targetRotX = 0.1 + normY * 0.28;
         }
       }
     });
@@ -782,132 +747,86 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     window.addEventListener("resize", onResize);
 
-    // --- Animation Loop ---
+    // --- One-Time Cinematic Chain Connection Animation ---
     let clock = new THREE.Clock();
+    const ENTRANCE_DURATION = 2.5; // seconds for the one-time sweep & snap connection
 
     function animate() {
       requestAnimationFrame(animate);
       const elapsedTime = clock.getElapsedTime();
 
-      // Smooth Rotation Damping
+      // Smooth Rotation Damping for mouse interaction & parallax
       currentRotY += (targetRotY - currentRotY) * 0.08;
       currentRotX += (targetRotX - currentRotX) * 0.08;
 
-      topCore.rotation.y = currentRotY + elapsedTime * 0.15;
-      topCore.rotation.x = currentRotX;
+      // Single one-time progress: 0 (initial off-screen state) -> 1 (docked state)
+      const rawProgress = Math.min(1.0, elapsedTime / ENTRANCE_DURATION);
+      // Quintic easeOut: powerful physical surge with smooth deceleration into connection
+      const ease = 1 - Math.pow(1 - rawProgress, 4);
 
-      bottomCore.rotation.y = -currentRotY - elapsedTime * 0.15;
-      bottomCore.rotation.x = currentRotX;
-
-      // Symmetrical Convergence Motion:
-      // Both objects move smoothly toward each other from top (+y) and bottom (-y)
-      // Base travel amplitude
-      const cycle = Math.sin(elapsedTime * 1.5);
-      const normalizedApproach = (cycle + 1) / 2; // 0 to 1
-
-      // Top moves from 1.6 down to 0.18
-      const topY = 1.6 - normalizedApproach * 1.42;
-      // Bottom moves from -1.6 up to -0.18
-      const bottomY = -1.6 + normalizedApproach * 1.42;
-
-      topCore.position.y = topY;
-      bottomCore.position.y = bottomY;
-
-      // Convergence Distance Telemetry readout
-      const distance = topY - bottomY - 0.36;
-      const distanceMicrons = Math.max(0.01, distance * 0.12).toFixed(3);
-      if (distanceMeter) {
-        if (distance < 0.08) {
-          distanceMeter.textContent = "CONVERGENCE: ENGAGED";
-          distanceMeter.style.color = "#059669";
-        } else {
-          distanceMeter.textContent = `CONVERGENCE: ${distanceMicrons}μm`;
-          distanceMeter.style.color = "#000";
-        }
+      // Elastic snap-rebound effect when the chain pulls taut (around rawProgress 0.88 - 1.0)
+      let snapVibration = 0;
+      if (rawProgress >= 0.88 && rawProgress < 1.0) {
+        const snapT = (rawProgress - 0.88) / 0.12;
+        snapVibration = Math.sin(snapT * Math.PI * 4) * Math.exp(-snapT * 3) * 0.06;
       }
 
-      // Energy Pulse & Flare on Closest Approach
-      if (distance < 0.25) {
-        const proximityFactor = 1 - distance / 0.25;
-        pulseRingMat.opacity = proximityFactor * 0.85;
-        pulseRing.scale.setScalar(1 + proximityFactor * 0.6);
-        contactLight.intensity = proximityFactor * 2.2;
+      // Top chain segment starts far above screen (+7.8) and descends to exactly 0.0
+      const topY = (7.8 * (1 - ease)) + snapVibration;
+      // Bottom chain segment starts far below screen (-7.8) and ascends to exactly 0.0
+      const bottomY = (-7.8 * (1 - ease)) - snapVibration;
+
+      // Curved lateral trajectory: chains arc gracefully inward and align flush at center (X=0, Z=0)
+      const arcFactor = Math.sin(ease * Math.PI);
+      const arcX = arcFactor * 1.45;
+      const arcZ = arcFactor * 0.45;
+
+      // Dynamic physical sway as the chains travel through air (decays to 0 when docked)
+      const sway = Math.sin(elapsedTime * 3.2) * (1 - ease) * 0.16;
+
+      topCore.position.set(arcX + sway, topY, arcZ);
+      bottomCore.position.set(-arcX - sway, bottomY, -arcZ);
+
+      // Banking & tilt: chains hang and orient dynamically along the flight vector
+      const bankAngle = (1 - ease) * Math.cos(ease * Math.PI) * 0.25;
+      const pitchAngle = arcFactor * 0.2;
+      const baseTilt = 0.20; // subtle forward tilt to show 3D link depth
+
+      topCore.rotation.z = -bankAngle;
+      bottomCore.rotation.z = bankAngle;
+
+      topCore.rotation.x = currentRotX + baseTilt + pitchAngle;
+      bottomCore.rotation.x = currentRotX + baseTilt - pitchAngle;
+
+      // Rotational alignment: subtle flight twist during travel that aligns to 0 when docked
+      const flightTwist = (1 - ease) * Math.sin(ease * Math.PI) * 0.45;
+      const gentleIdleSpin = elapsedTime * 0.12;
+      topCore.rotation.y = currentRotY + flightTwist + gentleIdleSpin;
+      bottomCore.rotation.y = currentRotY - flightTwist + gentleIdleSpin;
+
+      // Cyan Energy Surge when links interlock at center
+      if (rawProgress >= 0.88 && rawProgress < 1.0) {
+        const contactPulse = (rawProgress - 0.88) / 0.12;
+        pulseRingMat.opacity = Math.sin(contactPulse * Math.PI) * 0.95;
+        pulseRing.scale.setScalar(1 + contactPulse * 1.1);
+        contactLight.intensity = Math.sin(contactPulse * Math.PI) * 4.2;
+      } else if (rawProgress >= 1.0) {
+        // Settled locked state: gentle cyan energy glow at connection point
+        pulseRingMat.opacity = 0.22;
+        pulseRing.scale.setScalar(1.02);
+        contactLight.intensity = 0.9;
       } else {
         pulseRingMat.opacity = 0;
         contactLight.intensity = 0;
       }
 
-      // Slowly rotate particle field
-      particleSystem.rotation.y = elapsedTime * 0.05;
+      // Slowly rotate particle field around the locked chain
+      particleSystem.rotation.y = elapsedTime * 0.04;
 
       renderer.render(scene, camera);
     }
 
     animate();
-  }
-
-  // ========================================================================
-  // MINI TRANSACTION STREAM OSCILLOSCOPE (CANVAS 2D)
-  // Displayed in the left hero media card
-  // ========================================================================
-  function initMiniStreamOscilloscope() {
-    const canvas = document.getElementById("mini-stream-canvas");
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    let frame = 0;
-
-    function renderWave() {
-      requestAnimationFrame(renderWave);
-      frame++;
-      const w = canvas.width;
-      const h = canvas.height;
-
-      ctx.fillStyle = "#070a0e";
-      ctx.fillRect(0, 0, w, h);
-
-      // Grid background
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.05)";
-      ctx.lineWidth = 1;
-      for (let x = 0; x < w; x += 20) {
-        ctx.beginPath();
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, h);
-        ctx.stroke();
-      }
-      for (let y = 0; y < h; y += 20) {
-        ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.lineTo(w, y);
-        ctx.stroke();
-      }
-
-      // Draw real-time frequency pulse wave
-      ctx.beginPath();
-      ctx.strokeStyle = "#38bdf8";
-      ctx.lineWidth = 2;
-      ctx.shadowColor = "#38bdf8";
-      ctx.shadowBlur = 8;
-
-      const mid = h / 2;
-      for (let x = 0; x < w; x++) {
-        // Multi-frequency harmonic with intermittent sharp transaction spikes
-        const t = (x + frame * 2.5) * 0.04;
-        let y = mid + Math.sin(t) * 12 + Math.sin(t * 2.2) * 6;
-
-        // Transaction spike trigger every ~80 frames
-        const spikeTrigger = (x + frame * 3) % 110;
-        if (spikeTrigger > 50 && spikeTrigger < 58) {
-          y += Math.sin((spikeTrigger - 50) * Math.PI / 8) * -28;
-        }
-
-        if (x === 0) ctx.moveTo(x, y);
-        else ctx.lineTo(x, y);
-      }
-      ctx.stroke();
-      ctx.shadowBlur = 0;
-    }
-
-    renderWave();
   }
 
   // Smooth Scroll Trigger for Hero CTAs
@@ -922,9 +841,8 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Initialize Hero Animations
+  // Initialize Hero 3D Animation
   initHero3DAnimation();
-  initMiniStreamOscilloscope();
 
   // Initial load
   checkHealth();

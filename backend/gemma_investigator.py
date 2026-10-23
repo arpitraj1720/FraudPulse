@@ -113,7 +113,22 @@ class GemmaInvestigator:
             f"- micro_tx_before_large_tx: {bf.get('micro_tx_before_large_tx', False)}"
         )
 
-        prompt = f"""You are a FinTech Fraud Investigator AI. Analyze this flagged transaction sequence and return JSON.
+        gm = sequence_eval.get("graph_metrics", {})
+        graph_text = (
+            f"- recipient_in_degree: {gm.get('recipient_in_degree', 1)} unique originators (Mule Hub Fan-In: {gm.get('is_mule_fan_in', False)})\n"
+            f"- sender_out_degree: {gm.get('sender_out_degree', 1)} destinations (Smurfing Dispersion: {gm.get('is_smurfing_fan_out', False)})\n"
+            f"- circular_washing_cycle: {gm.get('cycle_detected', False)}\n"
+            f"- degrees_to_blacklisted_fraud: {gm.get('degrees_to_flagged_fraud', -1)}"
+        )
+
+        ml_attributions = transaction.get("ml_attributions") or sequence_eval.get("ml_attributions") or []
+        if ml_attributions:
+            attrib_list = [f"- {a['feature']}: {a['shap_value']:+.2f} ({a['impact']})" for a in ml_attributions]
+            attrib_text = "\n".join(attrib_list)
+        else:
+            attrib_text = "- Baseline feature distribution."
+
+        prompt = f"""You are a FinTech Fraud Investigator AI. Analyze this flagged transaction sequence, GBDT Tree SHAP feature attributions, and network graph topology, then return JSON.
 
 Transaction Details:
 Account: {transaction.get('account_id', 'UNKNOWN')}
@@ -128,15 +143,21 @@ Sequence Behavioral Risk: {hybrid_eval.get('sequence_behavioral_score', 0):.2f}
 Combined Risk: {hybrid_eval.get('final_risk_score', 0):.2f} ({hybrid_eval.get('risk_tier', 'MEDIUM')})
 {signals_summary}
 
-Engineered Behavioral Features:
+Tree SHAP ML Attribution Factors (Mathematical Proof):
+{attrib_text}
+
+Behavioral Telemetry:
 {bf_text}
+
+Graph Network Topology:
+{graph_text}
 
 Recent History in Account Window:
 {history_text}
 
 Respond ONLY with valid JSON matching this exact structure:
 {{
-  "threat_summary": "Concise 1-2 sentence threat assessment",
+  "threat_summary": "Concise 1-2 sentence threat assessment referencing behavioral, Tree SHAP, or graph topology evidence",
   "observed_signals": ["Signal 1", "Signal 2"],
   "counter_evidence": ["Mitigating factor 1", "Mitigating factor 2"],
   "recommended_action": "Specific risk mitigation action",
@@ -180,9 +201,37 @@ Respond ONLY with valid JSON matching this exact structure:
         """Failsafe generator when LLM API is unavailable or unconfigured."""
         amount = float(transaction.get("amount", 0.0))
         is_micro = sequence_eval.get("is_micro_probing", False)
+        gm = sequence_eval.get("graph_metrics", {})
         signals = [s["title"] for s in hybrid_eval.get("signals", [])]
 
-        if is_micro:
+        # Incorporate top Tree SHAP risk drivers if available
+        ml_attribs = transaction.get("ml_attributions") or sequence_eval.get("ml_attributions") or []
+        for a in ml_attribs:
+            if a.get("impact") == "+RISK" and a.get("shap_value", 0) > 0.5:
+                signals.append(f"Tree SHAP Risk Driver: {a['feature']} (+{a['shap_value']:.2f})")
+
+        if gm.get("cycle_detected"):
+            summary = (
+                f"Critical circular wash-routing detected: funds flow through loop "
+                f"{' -> '.join(gm.get('cycle_path', []))} indicating automated money laundering."
+            )
+            action = "Immediate Freeze of All Involved Network Node Wallets & SAR Escalation"
+            counter = ["Entities could theoretically belong to the same parent corporate treasury."]
+        elif gm.get("degrees_to_flagged_fraud") == 0:
+            summary = (
+                f"Direct interaction with blacklisted entity '{transaction.get('recipient')}'. "
+                f"High-confidence illicit asset routing."
+            )
+            action = "Block Transaction & Report Direct Sanction/AML Blacklist Hit"
+            counter = ["Recipient ID could theoretically be a collision if unverified."]
+        elif gm.get("is_mule_fan_in"):
+            summary = (
+                f"Mule account funnel detected: recipient '{transaction.get('recipient')}' is receiving simultaneous "
+                f"inflows from {gm.get('recipient_in_degree', 2)} distinct originators."
+            )
+            action = "Hold Transfer Pending Beneficiary Ownership Verification"
+            counter = ["Beneficiary could be an informal merchant or community pooled account."]
+        elif is_micro:
             summary = (
                 f"High-risk micro-probing signature detected for account {transaction.get('account_id')}. "
                 f"Small trial transfers were abruptly succeeded by a high-value transfer (${amount:,.2f}) to an unverified recipient."
